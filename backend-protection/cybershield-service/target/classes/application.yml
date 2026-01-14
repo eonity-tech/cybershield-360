@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: backend-protection
+
+  threads:
+    virtual:
+      enabled: true
+
+  # Base de données
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cybershield_db
+    username: admin
+    password: Sud-Eoni7ySud-*
+    driver-class-name: org.postgresql.Driver
+
+  # JPA
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # --- CONFIGURATION KEYCLOAK (Doit être bien alignée sous 'spring') ---
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # L'URL du Realm que tu as créé
+          issuer-uri: http://localhost:9090/realms/cybershield
+          # L'URL des certificats (pour éviter les erreurs de découverte au démarrage)
+          jwk-set-uri: http://localhost:9090/realms/cybershield/protocol/openid-connect/certs
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics

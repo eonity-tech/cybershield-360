@@ -1,0 +1,5 @@
+com/cybershield/protection/core/domain/Device.class
+com/cybershield/protection/core/usecase/EnrollDeviceService.class
+com/cybershield/protection/core/domain/Device$DeviceStatus.class
+com/cybershield/protection/core/port/in/EnrollDeviceUseCase.class
+com/cybershield/protection/core/port/out/DeviceRepository.class

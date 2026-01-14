@@ -1,0 +1,6 @@
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/CyberShieldApplication.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/DeviceController.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/out/persistence/DeviceEntity.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/out/persistence/DevicePersistenceAdapter.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/out/persistence/SpringDataDeviceRepository.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/config/DomainConfiguration.java

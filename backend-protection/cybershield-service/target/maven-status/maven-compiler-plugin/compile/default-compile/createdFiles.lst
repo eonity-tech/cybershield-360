@@ -1,0 +1,4 @@
+com/cybershield/protection/adapter/in/rest/DeviceController$DeviceEnrollmentRequest.class
+com/cybershield/protection/adapter/out/persistence/DeviceEntity.class
+com/cybershield/protection/adapter/in/rest/DeviceController.class
+com/cybershield/protection/CyberShieldApplication.class

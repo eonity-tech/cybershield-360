@@ -1,0 +1,86 @@
+services:
+  # Base de données PostgreSQL
+  db-core:
+    image: postgres:15-alpine
+    container_name: cyber-db
+    environment:
+      POSTGRES_DB: cybershield_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: Sud-Eoni7ySud-*
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cyber-net
+
+  # Identity Provider (Keycloak)
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: cyber-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: Paca*E0ni7y007Paca*
+    command: start-dev
+    ports:
+      - "9090:8080"
+    volumes:  # ####### AJOUT CRITIQUE 1 : On lie le dossier de données
+      - keycloak_data:/opt/keycloak/data/
+    networks:
+      - cyber-net
+
+  # Redis (Bus d'événements)
+  broker:
+    image: redis:7-alpine
+    container_name: cyber-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cyber-net
+
+  # Interface Web pour Redis (Redis Insight)
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: cyber-redis-insight
+    ports:
+      - "5540:5540"
+    networks:
+      - cyber-net
+
+  # Jaeger (Tracing OpenTelemetry)
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: cyber-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    networks:
+      - cyber-net
+
+  # Interface Web pour PostgreSQL (pgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4:7
+    container_name: cyber-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cybershield.com
+      PGADMIN_DEFAULT_PASSWORD: Sud-Eoni7ySud-*
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - cyber-net
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
+  keycloak_data:
+
+networks:
+  cyber-net:
+    driver: bridge

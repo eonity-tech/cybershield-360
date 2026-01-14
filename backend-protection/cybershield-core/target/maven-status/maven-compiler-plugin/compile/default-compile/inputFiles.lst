@@ -1,0 +1,4 @@
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/domain/Device.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/EnrollDeviceUseCase.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/out/DeviceRepository.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/usecase/EnrollDeviceService.java
