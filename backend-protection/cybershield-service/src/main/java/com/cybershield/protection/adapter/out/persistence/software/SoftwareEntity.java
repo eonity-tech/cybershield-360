@@ -5,13 +5,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Data;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "softwares")
-@Data
 public class SoftwareEntity {
 
     @Id
@@ -30,10 +28,10 @@ public class SoftwareEntity {
     @Column(name = "critical_score")
     private Double criticalScore;
 
-    // 1. Constructeur par défaut (JPA/Hibernate)
+    // 1. Constructeur par défaut (Obligatoire pour JPA)
     public SoftwareEntity() {}
 
-    // 2. Méthodes de conversion (Mappers)
+    // 2. Conversion DOMAINE -> ENTITÉ (Pour sauvegarder)
     public static SoftwareEntity fromDomain(Software software) {
         SoftwareEntity entity = new SoftwareEntity();
         entity.setId(software.getId());
@@ -46,8 +44,16 @@ public class SoftwareEntity {
         return entity;
     }
 
+    // 3. Conversion ENTITÉ -> DOMAINE (Pour lire)
     public Software toDomain() {
-        return new Software(id, deviceId, name, version, publisher, isRunning);
+        // A. On crée l'objet de base
+        Software domain = new Software(id, deviceId, name, version, publisher, isRunning);
+
+        // B. ✅ CORRECTION CRUCIALE ICI :
+        // On remet le score critique dans l'objet domaine, sinon il vaut 0.0 !
+        domain.setCriticalScore(this.criticalScore);
+
+        return domain;
     }
 
     // --- GETTERS ET SETTERS ---

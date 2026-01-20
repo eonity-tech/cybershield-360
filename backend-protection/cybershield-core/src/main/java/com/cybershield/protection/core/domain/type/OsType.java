@@ -6,5 +6,6 @@ public enum OsType {
     MACOS,
     ANDROID,
     IOS,
-    UNKNOWN
+    UNKNOWN,
+    OTHER
 }

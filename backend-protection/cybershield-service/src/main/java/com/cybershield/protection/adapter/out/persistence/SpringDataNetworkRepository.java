@@ -20,4 +20,6 @@ public interface SpringDataNetworkRepository extends JpaRepository<NetworkMetric
 
     // Pour le calcul global du réseau
     List<NetworkMetricEntity> findByTimestampAfter(LocalDateTime time);
+
+    List<NetworkMetricEntity> findAllByDeviceId(UUID deviceId);
 }

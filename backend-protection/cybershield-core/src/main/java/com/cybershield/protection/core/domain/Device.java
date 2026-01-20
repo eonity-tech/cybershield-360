@@ -49,7 +49,9 @@ public class Device {
         this.osVersion = sanitize(osVersion, 50);
         this.hostname = sanitize(hostname, 100);
         this.vendor = sanitize(vendor, 100);
-        this.openPorts = sanitize(openPorts, 255); // Liste des ports
+
+        // CORRECTION ICI : On autorise la virgule pour la liste des ports
+        this.openPorts = sanitize(openPorts, 255);
 
         // Données techniques
         this.ttl = ttl;
@@ -60,7 +62,9 @@ public class Device {
     // Méthode utilitaire de nettoyage pour la réutilisation
     private String sanitize(String input, int maxLength) {
         if (input == null || input.isBlank()) return "Unknown";
-        String cleaned = input.replaceAll("[^a-zA-Z0-9.\\- _]", "");
+
+        String cleaned = input.replaceAll("[^a-zA-Z0-9.\\- _,/]", "");
+
         return (cleaned.length() > maxLength) ? cleaned.substring(0, maxLength) : cleaned;
     }
 
@@ -82,7 +86,7 @@ public class Device {
             score += 20.0;
         }
 
-        return Math.min(score, 100.0); // Score sur 100
+        return Math.min(score, 100.0);
     }
 
     public String getSecurityRecommendation() {
@@ -90,7 +94,6 @@ public class Device {
 
         StringBuilder advice = new StringBuilder("Actions recommandées : ");
 
-        // vérification des deux versions obsolètes
         if (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008")) {
             advice.append("- Migrer vers une version de Windows supportée (OS obsolète). ");
         }
@@ -118,6 +121,7 @@ public class Device {
     public Integer getTtl() { return ttl; }
     public String getOpenPorts() { return openPorts; }
     public DeviceStatus getStatus() { return status; }
+    // Le getter indispensable pour la BDD
     public Instant getEnrolledAt() { return enrolledAt; }
 
     public enum DeviceStatus { UNPROTECTED, PROTECTED, COMPROMISED }

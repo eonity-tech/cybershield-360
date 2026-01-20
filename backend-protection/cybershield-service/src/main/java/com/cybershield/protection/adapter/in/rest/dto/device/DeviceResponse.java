@@ -31,7 +31,7 @@ public record DeviceResponse(
                 device.getTtl(),
                 device.getOpenPorts(),
                 device.getStatus().name(),
-                device.getEnrolledAt().toString(),
+                (device.getEnrolledAt() != null) ? device.getEnrolledAt().toString() : null,
                 device.calculateRiskScore(),
                 device.getSecurityRecommendation()
         );

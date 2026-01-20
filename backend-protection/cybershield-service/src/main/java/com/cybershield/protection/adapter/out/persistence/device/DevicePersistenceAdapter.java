@@ -2,7 +2,11 @@ package com.cybershield.protection.adapter.out.persistence.device;
 
 import com.cybershield.protection.adapter.out.persistence.SpringDataDeviceRepository;
 import com.cybershield.protection.core.domain.Device;
+import com.cybershield.protection.core.domain.type.DeviceType;
+import com.cybershield.protection.core.domain.type.OsType;
 import com.cybershield.protection.core.port.out.DeviceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,6 +16,9 @@ import java.util.UUID;
 @Component
 public class DevicePersistenceAdapter implements DeviceRepository {
 
+    // Logger manuel
+    private static final Logger log = LoggerFactory.getLogger(DevicePersistenceAdapter.class);
+
     private final SpringDataDeviceRepository springRepository;
 
     public DevicePersistenceAdapter(SpringDataDeviceRepository springRepository) {
@@ -20,15 +27,12 @@ public class DevicePersistenceAdapter implements DeviceRepository {
 
     @Override
     public Optional<Device> findById(UUID id) {
-        // On cherche l'entité par son ID technique (UUID)
         return springRepository.findById(id)
-                .map(this::toDomain); // On transforme l'entité trouvée en objet métier
+                .map(this::toDomain);
     }
 
     @Override
     public List<Device> findAll() {
-        // On appelle le repository Spring Data pour avoir toutes les entités
-        // Puis on transforme chaque entité JPA en objet du Domaine via toDomain
         return springRepository.findAll()
                 .stream()
                 .map(this::toDomain)
@@ -42,13 +46,9 @@ public class DevicePersistenceAdapter implements DeviceRepository {
 
     @Override
     public Device save(Device device) {
-        // 1. MAPPING : Domaine -> Entity JPA
+        log.info("Sauvegarde du device en base : {}", device.getId());
         DeviceEntity entity = toEntity(device);
-
-        // 2. ACTION : Sauvegarde en BDD
         DeviceEntity savedEntity = springRepository.save(entity);
-
-        // 3. MAPPING : Entity JPA -> Domaine
         return toDomain(savedEntity);
     }
 
@@ -58,32 +58,52 @@ public class DevicePersistenceAdapter implements DeviceRepository {
                 .map(this::toDomain);
     }
 
-    // --- MAPPERS PRIVÉS  ---
+    // --- MAPPERS PRIVÉS ---
     private DeviceEntity toEntity(Device domain) {
         DeviceEntity entity = new DeviceEntity();
+
+        // Champs simples
         entity.setId(domain.getId());
         entity.setMacAddress(domain.getMacAddress());
         entity.setIpAddress(domain.getIpAddress());
-        entity.setType(domain.getType());
-        entity.setOsType(domain.getOsType());
         entity.setOsVersion(domain.getOsVersion());
         entity.setHostname(domain.getHostname());
         entity.setVendor(domain.getVendor());
         entity.setTtl(domain.getTtl());
         entity.setOpenPorts(domain.getOpenPorts());
-        entity.setStatus(domain.getStatus().name());
-        entity.setEnrolledAt(domain.getEnrolledAt());
+
+        if (domain.getEnrolledAt() != null) {
+            entity.setEnrolledAt(java.time.LocalDateTime.ofInstant(
+                    domain.getEnrolledAt(),
+                    java.time.ZoneId.systemDefault())
+            );
+        }
+
+        // --- CONVERSION ENUMS -> STRINGS ---
+        if (domain.getType() != null) {
+            entity.setType(domain.getType().name());
+        }
+        if (domain.getOsType() != null) {
+            entity.setOsType(domain.getOsType().name());
+        }
+        if (domain.getStatus() != null) {
+            entity.setStatus(domain.getStatus().name());
+        }
+
         return entity;
     }
 
     private Device toDomain(DeviceEntity entity) {
-        // Reconstruction de l'objet métier avec les 10 paramètres (ID + les 9 du scan)
+        // --- CONVERSION STRINGS -> ENUMS ---
+        DeviceType type = entity.getType() != null ? DeviceType.valueOf(entity.getType()) : DeviceType.UNKNOWN;
+        OsType osType = entity.getOsType() != null ? OsType.valueOf(entity.getOsType()) : OsType.UNKNOWN;
+
         Device domain = new Device(
                 entity.getId(),
                 entity.getMacAddress(),
                 entity.getIpAddress(),
-                entity.getType(),
-                entity.getOsType(),
+                type,
+                osType,
                 entity.getOsVersion(),
                 entity.getHostname(),
                 entity.getVendor(),
@@ -91,7 +111,7 @@ public class DevicePersistenceAdapter implements DeviceRepository {
                 entity.getOpenPorts()
         );
 
-        // On restaure le statut exact
+        // Restauration du statut
         if ("PROTECTED".equals(entity.getStatus())) {
             domain.markAsProtected();
         } else if ("COMPROMISED".equals(entity.getStatus())) {

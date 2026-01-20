@@ -9,7 +9,7 @@ public class Software {
     private final String version;
     private final String publisher;
     private final boolean isRunning;
-    private final Double criticalScore;
+    private Double criticalScore;
 
     public Software(UUID id, UUID deviceId, String name, String version, String publisher, boolean isRunning) {
         this.id = id;
@@ -18,12 +18,15 @@ public class Software {
         this.version = version;
         this.publisher = (publisher == null || publisher.isBlank()) ? "Unknown Publisher" : publisher;
         this.isRunning = isRunning;
+
+        // Calcul par défaut à la création
         this.criticalScore = calculateSoftwareRisk();
     }
 
     // Logiciel métier : Calcul du risque lié au logiciel
     private Double calculateSoftwareRisk() {
         double score = 0.0;
+        if (name == null) return 0.0; // Sécurité anti-null
         String n = name.toLowerCase();
 
         // Détection de vulnérabilités connues (CVE simulées)
@@ -37,8 +40,8 @@ public class Software {
         return Math.min(score, 100.0);
     }
 
-    // Logique de recommandation pour l'utilisateur
     public String getSecurityRecommendation() {
+        if (criticalScore == null) return "Analyse en cours...";
         if (criticalScore >= 90) return "DANGER : Faille critique détectée. Mettez à jour ou supprimez ce logiciel immédiatement.";
         if (criticalScore >= 40) return "AVERTISSEMENT : Logiciel de prise en main à distance ou non autorisé détecté.";
         if (criticalScore > 0) return "Note : Version ancienne détectée, une mise à jour est conseillée.";
@@ -53,4 +56,7 @@ public class Software {
     public String getPublisher() { return publisher; }
     public boolean isRunning() { return isRunning; }
     public Double getCriticalScore() { return criticalScore; }
+    public void setCriticalScore(Double score) {
+        this.criticalScore = score;
+    }
 }

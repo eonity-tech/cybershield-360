@@ -4,13 +4,17 @@ import com.cybershield.protection.core.domain.Device;
 import com.cybershield.protection.core.port.out.event.DeviceEventPublisher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class RedisDeviceEventPublisher implements DeviceEventPublisher {
+
+    // 2. DÉCLARATION MANUELLE DU LOGGER
+    private static final Logger log = LoggerFactory.getLogger(RedisDeviceEventPublisher.class);
 
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
