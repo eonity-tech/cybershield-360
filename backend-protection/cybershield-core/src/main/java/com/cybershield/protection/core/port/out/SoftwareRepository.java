@@ -7,4 +7,5 @@ import java.util.UUID;
 public interface SoftwareRepository {
     Software save(Software software);
     List<Software> findByDeviceId(UUID deviceId);
+    List<Software> findAll();
 }

@@ -1,7 +1,7 @@
 package com.cybershield.protection.adapter.in.rest;
 
-import com.cybershield.protection.adapter.in.rest.dto.DeviceEnrollmentRequest;
-import com.cybershield.protection.adapter.in.rest.dto.DeviceResponse;
+import com.cybershield.protection.adapter.in.rest.dto.device.DeviceEnrollmentRequest;
+import com.cybershield.protection.adapter.in.rest.dto.device.DeviceResponse;
 import com.cybershield.protection.adapter.infrastructure.jwt.ConnectedUser;
 import com.cybershield.protection.core.domain.Device;
 import com.cybershield.protection.core.port.in.EnrollDeviceUseCase;
@@ -43,6 +43,6 @@ public class DeviceController {
         // 2. Conversion Domaine -> DTO Réponse
         DeviceResponse response = DeviceResponse.fromDomain(domainDevice);
 
-        return ResponseEntity.status(201).body(response); // 201 est plus sémantique pour une création
+        return ResponseEntity.status(201).body(response);
     }
 }

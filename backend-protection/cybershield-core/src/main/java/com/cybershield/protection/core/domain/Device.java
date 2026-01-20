@@ -1,5 +1,8 @@
 package com.cybershield.protection.core.domain;
 
+import com.cybershield.protection.core.domain.type.DeviceType;
+import com.cybershield.protection.core.domain.type.OsType;
+
 import java.time.Instant;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -28,7 +31,7 @@ public class Device {
                   OsType osType, String osVersion, String hostname,
                   String vendor, Integer ttl, String openPorts) {
 
-        // 1. Validations de base (Sécurité critique)
+        // Validations de base -> Sécurité critique
         if (macAddress == null || !MAC_PATTERN.matcher(macAddress).matches()) {
             throw new IllegalArgumentException("Format d'adresse MAC invalide : " + macAddress);
         }
@@ -42,19 +45,19 @@ public class Device {
         this.type = type;
         this.osType = osType;
 
-        // 2. Sanitization des chaînes libres (Anti-Injection)
+        // Sanitization des chaînes libres -> Anti-Injection
         this.osVersion = sanitize(osVersion, 50);
         this.hostname = sanitize(hostname, 100);
         this.vendor = sanitize(vendor, 100);
         this.openPorts = sanitize(openPorts, 255); // Liste des ports
 
-        // 3. Données techniques
+        // Données techniques
         this.ttl = ttl;
         this.status = DeviceStatus.UNPROTECTED;
         this.enrolledAt = Instant.now();
     }
 
-    // Méthode utilitaire de nettoyage pour réutilisation
+    // Méthode utilitaire de nettoyage pour la réutilisation
     private String sanitize(String input, int maxLength) {
         if (input == null || input.isBlank()) return "Unknown";
         String cleaned = input.replaceAll("[^a-zA-Z0-9.\\- _]", "");
@@ -87,7 +90,7 @@ public class Device {
 
         StringBuilder advice = new StringBuilder("Actions recommandées : ");
 
-        // Correction ici : on vérifie les deux versions obsolètes
+        // vérification des deux versions obsolètes
         if (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008")) {
             advice.append("- Migrer vers une version de Windows supportée (OS obsolète). ");
         }

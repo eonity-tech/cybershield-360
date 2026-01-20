@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Gère les erreurs de validation du Domain (ex: MAC invalide dans le constructeur Device)
+     * Gère les erreurs de validation du Domain (ex: MAC invalide dans le constructeur device)
      * Règle : IllegalArgumentException -> 400 Bad Request
      */
     @ExceptionHandler(IllegalArgumentException.class)
@@ -82,7 +83,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Gère les conflits d'état (ex: Device déjà enregistré)
+     * Gère les conflits d'état (ex: device déjà enregistré)
      * Règle : IllegalStateException -> 409 Conflict
      */
     @ExceptionHandler(IllegalStateException.class)
@@ -95,5 +96,20 @@ public class GlobalExceptionHandler {
                 ex.getMessage() // "L'appareil avec l'adresse MAC ... est déjà enregistré."
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
+     * Gère les accès refusés au niveau métier
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, ServerWebExchange exchange) {
+        log.warn("Access denied on {}: {}", exchange.getRequest().getPath(), ex.getMessage());
+
+        ApiError error = new ApiError(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.name(),
+                "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource."
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 }

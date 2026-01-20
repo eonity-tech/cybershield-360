@@ -26,18 +26,18 @@ public class Software {
         double score = 0.0;
         String n = name.toLowerCase();
 
-        // Exemple de détection de vulnérabilités connues (CVE simulées)
+        // Détection de vulnérabilités connues (CVE simulées)
         if (n.contains("log4j") && version.equals("2.14.1")) score += 100.0;
         if (n.contains("apache") && version.startsWith("2.4.49")) score += 90.0;
 
-        // Exemple de logiciels à risque (Shadow IT)
+        // Logiciels à risque (Shadow IT)
         if (n.contains("teamviewer") || n.contains("anydesk")) score += 40.0;
         if (n.contains("torrent") || n.contains("u-torrent")) score += 60.0;
 
         return Math.min(score, 100.0);
     }
 
-    // Logique de recommandation pour le dirigeant
+    // Logique de recommandation pour l'utilisateur
     public String getSecurityRecommendation() {
         if (criticalScore >= 90) return "DANGER : Faille critique détectée. Mettez à jour ou supprimez ce logiciel immédiatement.";
         if (criticalScore >= 40) return "AVERTISSEMENT : Logiciel de prise en main à distance ou non autorisé détecté.";

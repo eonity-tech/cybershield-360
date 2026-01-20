@@ -2,11 +2,11 @@ package com.cybershield.protection.core.usecase;
 
 import com.cybershield.protection.core.domain.CompliancePolicy;
 import com.cybershield.protection.core.domain.Device;
-import com.cybershield.protection.core.domain.DeviceType;
-import com.cybershield.protection.core.domain.OsType;
+import com.cybershield.protection.core.domain.type.DeviceType;
+import com.cybershield.protection.core.domain.type.OsType;
 import com.cybershield.protection.core.port.in.EnrollDeviceUseCase;
 import com.cybershield.protection.core.port.out.DeviceRepository;
-import com.cybershield.protection.core.port.out.DeviceEventPublisher;
+import com.cybershield.protection.core.port.out.event.DeviceEventPublisher;
 
 import java.util.UUID;
 
@@ -31,7 +31,7 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
             throw new IllegalStateException("L'appareil avec l'adresse MAC " + macAddress + " est déjà enregistré.");
         }
 
-        // 2. Création de l'entité avec les 9 paramètres (+ ID généré)
+        // 2. Création de l'entité avec les 9 paramètres (+ UUID généré)
         Device newDevice = new Device(
                 UUID.randomUUID(),
                 macAddress,

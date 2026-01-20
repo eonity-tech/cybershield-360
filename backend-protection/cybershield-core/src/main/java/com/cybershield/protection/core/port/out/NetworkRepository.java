@@ -6,10 +6,7 @@ import java.util.UUID;
 
 public interface NetworkRepository {
     void save(NetworkMetric metric);
-
     List<NetworkMetric> findByDeviceId(UUID deviceId);
-
     List<NetworkMetric> findAllRecent();
-
     NetworkMetric findLatestByDeviceId(UUID deviceId);
 }

@@ -3,7 +3,6 @@ package com.cybershield.protection.adapter.infrastructure.jwt;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.BindingContext;

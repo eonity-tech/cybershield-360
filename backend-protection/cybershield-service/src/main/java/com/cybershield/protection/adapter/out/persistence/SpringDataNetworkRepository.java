@@ -1,5 +1,6 @@
 package com.cybershield.protection.adapter.out.persistence;
 
+import com.cybershield.protection.adapter.out.persistence.network.NetworkMetricEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +15,7 @@ public interface SpringDataNetworkRepository extends JpaRepository<NetworkMetric
     // Trouve les métriques récentes pour un PC
     List<NetworkMetricEntity> findByDeviceIdOrderByTimestampDesc(UUID deviceId);
 
-    // AJOUT : Pour récupérer uniquement le dernier flux (StatusCode temps réel)
+    // Pour récupérer uniquement le dernier flux (StatusCode temps réel)
     Optional<NetworkMetricEntity> findFirstByDeviceIdOrderByTimestampDesc(UUID deviceId);
 
     // Pour le calcul global du réseau

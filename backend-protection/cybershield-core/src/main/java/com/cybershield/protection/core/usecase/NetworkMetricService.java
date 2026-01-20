@@ -1,7 +1,7 @@
 package com.cybershield.protection.core.usecase;
 
 import com.cybershield.protection.core.domain.NetworkMetric;
-import com.cybershield.protection.core.dto.GlobalDeviceDashboardResponse;
+import com.cybershield.protection.core.model.GlobalDeviceDashboardSummary;
 import com.cybershield.protection.core.port.in.RecordNetworkTrafficUseCase;
 import com.cybershield.protection.core.port.out.DeviceRepository;
 import com.cybershield.protection.core.port.out.NetworkRepository; // À créer
@@ -27,17 +27,25 @@ public class NetworkMetricService implements RecordNetworkTrafficUseCase {
 
     @Override
     public void record(UUID deviceId, double bytesSent, double bytesReceived) {
+        // --- GARDE DE SÉCURITÉ ---
+        if (deviceId == null) {
+            throw new IllegalArgumentException("L'identifiant de l'appareil est obligatoire pour enregistrer du trafic.");
+        }
+
+        // Création de l'objet métier (Metric)
         NetworkMetric metric = new NetworkMetric(
                 UUID.randomUUID(),
                 deviceId,
                 bytesSent,
                 bytesReceived
         );
+
+        // Sauvegarde via le port de sortie (Interface vers la BDD)
         networkRepository.save(metric);
     }
 
-    // --- LA VUE RÉCAPITULATIVE POUR LE PATRON ---
-    public List<GlobalDeviceDashboardResponse> getGlobalDashboard() {
+    // --- LA VUE RÉCAPITULATIVE POUR L'UTILISATEUR ---
+    public List<GlobalDeviceDashboardSummary> getGlobalDashboard() {
         return deviceRepository.findAll().stream().map(device -> {
 
             // 1. Récupérer le dernier flux connu pour ce PC (Phase 3)
@@ -58,8 +66,8 @@ public class NetworkMetricService implements RecordNetworkTrafficUseCase {
                     .map(s -> s.getName() + " (v" + s.getVersion() + ")")
                     .toList();
 
-            // 4. On assemble tout pour le Dashboard
-            return new GlobalDeviceDashboardResponse(
+            // 4. Assemblage pour le Dashboard
+            return new GlobalDeviceDashboardSummary(
                     device.getId(),
                     device.getIpAddress(),
                     device.getHostname(),

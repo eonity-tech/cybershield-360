@@ -5,6 +5,6 @@ import java.util.UUID;
 
 public record ConnectedUser(
         UUID id,            // L'ID technique de l'utilisateur (sub)
-        String username,    // Son email ou login
-        List<String> roles  // Ses rôles (admin, user, etc.)
+        String username,    // Email ou login
+        List<String> roles  // Rôles (admin, user, etc.)
 ) {}

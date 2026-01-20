@@ -1,5 +1,8 @@
 package com.cybershield.protection.core.domain;
 
+import com.cybershield.protection.core.domain.type.DeviceType;
+import com.cybershield.protection.core.domain.type.OsType;
+
 public class CompliancePolicy {
 
     public void validate(Device device) {
@@ -14,7 +17,7 @@ public class CompliancePolicy {
         }
     }
 
-    // Exception métier personnalisée
+    // Exception métier
     public static class ComplianceException extends RuntimeException {
         public ComplianceException(String message) { super(message); }
     }

@@ -1,8 +1,8 @@
 package com.cybershield.protection.adapter.in.rest;
 
-import com.cybershield.protection.adapter.in.rest.dto.NetworkTrafficRequest;
-import com.cybershield.protection.adapter.in.rest.dto.NetworkTrafficResponse;
-import com.cybershield.protection.core.dto.GlobalDeviceDashboardResponse;
+import com.cybershield.protection.adapter.in.rest.dto.network.NetworkTrafficRequest;
+import com.cybershield.protection.adapter.in.rest.dto.network.NetworkTrafficResponse;
+import com.cybershield.protection.core.model.GlobalDeviceDashboardSummary;
 import com.cybershield.protection.core.port.in.RecordNetworkTrafficUseCase;
 import com.cybershield.protection.core.usecase.NetworkMetricService;
 import jakarta.validation.Valid;
@@ -27,8 +27,7 @@ public class NetworkMonitoringController {
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<List<GlobalDeviceDashboardResponse>> getDashboard() {
-        // Maintenant networkMetricService est reconnu !
+    public ResponseEntity<List<GlobalDeviceDashboardSummary>> getDashboard() {
         return ResponseEntity.ok(networkMetricService.getGlobalDashboard());
     }
 
@@ -62,7 +61,7 @@ public class NetworkMonitoringController {
         NetworkTrafficResponse response = new NetworkTrafficResponse(
                 request.deviceId(),
                 status,
-                statusCode, // Ton nouveau champ integer
+                statusCode,
                 total,
                 message
         );

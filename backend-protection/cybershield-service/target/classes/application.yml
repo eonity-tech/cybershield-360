@@ -33,7 +33,7 @@ spring:
       host: localhost
       port: 6379
 
-  # --- CONFIGURATION KEYCLOAK (Doit être bien alignée sous 'spring') ---
+  # CONFIGURATION KEYCLOAK
   security:
     oauth2:
       resourceserver:

@@ -1,7 +1,7 @@
 package com.cybershield.protection.adapter.in.rest;
 
-import com.cybershield.protection.adapter.in.rest.dto.SoftwareInclusionRequest;
-import com.cybershield.protection.adapter.in.rest.dto.SoftwareResponse;
+import com.cybershield.protection.adapter.in.rest.dto.software.SoftwareInclusionRequest;
+import com.cybershield.protection.adapter.in.rest.dto.software.SoftwareResponse;
 import com.cybershield.protection.core.domain.Software;
 import com.cybershield.protection.core.port.in.RegisterSoftwareUseCase;
 import jakarta.validation.Valid;

@@ -13,14 +13,12 @@ public class JwtParser {
 
     public ConnectedUser parse(Jwt jwt) {
         // 1. Récupération de l'ID (Subject).
-        // Attention: Assure-toi que ton Identity Provider renvoie bien un UUID dans "sub"
         String subject = jwt.getSubject();
         UUID id = null;
         try {
             id = UUID.fromString(subject);
         } catch (IllegalArgumentException e) {
             // Si le sub n'est pas un UUID, on génère un UUID temporaire ou on gère l'erreur
-            // Pour l'exemple, on laisse null ou on loggue
         }
 
         // 2. Récupération du username (parfois 'email', parfois 'preferred_username')

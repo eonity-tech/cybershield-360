@@ -4,7 +4,8 @@ import com.cybershield.protection.core.domain.Software;
 import java.util.List;
 import java.util.UUID;
 
-// Supprime l'import de SoftwareInclusionRequest ici !
+// Enregistrement d'un logiciel
+// Respecte la sémantique du DDD (Domain-Driven Design)
 public interface RegisterSoftwareUseCase {
     Software register(UUID deviceId, String name, String version, String publisher, boolean isRunning);
 
