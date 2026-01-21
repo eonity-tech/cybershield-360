@@ -65,7 +65,9 @@ public class GlobalSyncController {
         return ResponseEntity.ok(new GlobalStatusResponse(
                 device.getId(),
                 "SYNC_SUCCESS",
-                "Synchronisation terminée avec succès"
+                "Synchronisation terminée avec succès",
+                device.getSecurityRecommendation(),
+                device.getVulnerabilityLevel().name()
         ));
     }
 }

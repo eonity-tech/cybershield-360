@@ -14,11 +14,18 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
 
     private final DeviceRepository deviceRepository;
     private final DeviceEventPublisher eventPublisher;
+    // 1. On ajoute le service d'analyse
+    private final SecurityAnalyzerService securityAnalyzerService;
+
     private final CompliancePolicy compliancePolicy = new CompliancePolicy();
 
-    public EnrollDeviceService(DeviceRepository deviceRepository, DeviceEventPublisher eventPublisher) {
+    // 2. On met à jour le constructeur pour l'injection de dépendance
+    public EnrollDeviceService(DeviceRepository deviceRepository,
+                               DeviceEventPublisher eventPublisher,
+                               SecurityAnalyzerService securityAnalyzerService) {
         this.deviceRepository = deviceRepository;
         this.eventPublisher = eventPublisher;
+        this.securityAnalyzerService = securityAnalyzerService;
     }
 
     @Override
@@ -31,7 +38,7 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
             throw new IllegalStateException("L'appareil avec l'adresse MAC " + macAddress + " est déjà enregistré.");
         }
 
-        // 2. Création de l'entité avec les 9 paramètres (+ UUID généré)
+        // 2. Création de l'entité
         Device newDevice = new Device(
                 UUID.randomUUID(),
                 macAddress,
@@ -48,10 +55,15 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
         // 3. Sécurité : Validation de conformité
         compliancePolicy.validate(newDevice);
 
-        // 4. Persistance
+        // 4. Analyse intelligente de sécurité (Expert Cyber gratuit)
+        // On génère le rapport et on l'injecte dans l'objet avant de sauvegarder
+        String securityReport = securityAnalyzerService.analyzeDeviceSecurity(newDevice);
+        newDevice.setSecurityRecommendation(securityReport);
+
+        // 5. Persistance
         Device savedDevice = deviceRepository.save(newDevice);
 
-        // 5. Notification (Redis)
+        // 6. Notification (Redis)
         eventPublisher.publishDeviceCreated(savedDevice);
 
         return savedDevice;

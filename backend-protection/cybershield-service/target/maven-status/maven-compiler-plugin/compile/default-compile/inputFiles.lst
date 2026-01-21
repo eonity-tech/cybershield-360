@@ -5,6 +5,7 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/SoftwareController.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/dto/device/DeviceEnrollmentRequest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/dto/device/DeviceResponse.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/dto/global/GlobalDashboardResponse.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/dto/global/GlobalEnrollmentRequest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/dto/global/GlobalStatusResponse.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/adapter/in/rest/dto/network/NetworkTrafficRequest.java

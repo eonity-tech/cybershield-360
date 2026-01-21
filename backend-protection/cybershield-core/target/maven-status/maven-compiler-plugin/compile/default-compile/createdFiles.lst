@@ -1,5 +1,6 @@
 com/cybershield/protection/core/domain/NetworkMetric.class
 com/cybershield/protection/core/model/GlobalDeviceDashboardSummary.class
+com/cybershield/protection/core/usecase/SecurityAnalyzerService.class
 com/cybershield/protection/core/domain/CompliancePolicy.class
 com/cybershield/protection/core/domain/Software.class
 com/cybershield/protection/core/port/out/SoftwareRepository.class
@@ -10,6 +11,7 @@ com/cybershield/protection/core/usecase/NetworkMetricService.class
 com/cybershield/protection/core/domain/Device.class
 com/cybershield/protection/core/usecase/SoftwareService.class
 com/cybershield/protection/core/port/in/RegisterSoftwareUseCase.class
+com/cybershield/protection/core/domain/type/VulnerabilityLevel.class
 com/cybershield/protection/core/domain/type/OsType.class
 com/cybershield/protection/core/domain/type/DeviceType.class
 com/cybershield/protection/core/port/in/EnrollDeviceUseCase.class

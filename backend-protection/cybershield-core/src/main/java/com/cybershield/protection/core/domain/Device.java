@@ -2,6 +2,7 @@ package com.cybershield.protection.core.domain;
 
 import com.cybershield.protection.core.domain.type.DeviceType;
 import com.cybershield.protection.core.domain.type.OsType;
+import com.cybershield.protection.core.domain.type.VulnerabilityLevel;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -26,6 +27,8 @@ public class Device {
 
     private static final Pattern MAC_PATTERN = Pattern.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
     private static final Pattern IP_PATTERN = Pattern.compile("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$");
+
+    private String securityRecommendation;
 
     public Device(UUID id, String macAddress, String ipAddress, DeviceType type,
                   OsType osType, String osVersion, String hostname,
@@ -90,19 +93,33 @@ public class Device {
     }
 
     public String getSecurityRecommendation() {
-        if (calculateRiskScore() == 0) return "Appareil conforme aux standards de sécurité.";
-
-        StringBuilder advice = new StringBuilder("Actions recommandées : ");
-
-        if (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008")) {
-            advice.append("- Migrer vers une version de Windows supportée (OS obsolète). ");
+        // 1. Si un rapport d'analyse externe a été injecté, on le retourne en priorité
+        if (this.securityRecommendation != null && !this.securityRecommendation.isBlank()) {
+            return this.securityRecommendation;
         }
 
-        if (this.openPorts.contains("21")) advice.append("- Fermer le port FTP et utiliser SFTP. ");
-        if (this.openPorts.contains("23")) advice.append("- Désactiver Telnet (non sécurisé). ");
-        if (this.osType == OsType.UNKNOWN) advice.append("- Identifier l'appareil manuellement pour vérification. ");
+        // 2. Sinon, on garde l'ancien calcul par défaut (Fallback)
+        if (calculateRiskScore() == 0) return "Appareil conforme aux standards de sécurité.";
+
+        StringBuilder advice = new StringBuilder("Actions recommandées (Auto) : ");
+        if (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008")) {
+            advice.append("- Migrer vers une version de Windows supportée. ");
+        }
+        if (this.openPorts.contains("21")) advice.append("- Fermer le port FTP. ");
+        if (this.openPorts.contains("23")) advice.append("- Désactiver Telnet. ");
+        if (this.osType == OsType.UNKNOWN) advice.append("- Identifier l'appareil manuellement. ");
 
         return advice.toString();
+    }
+
+    public void setSecurityRecommendation(String securityRecommendation) {
+        this.securityRecommendation = securityRecommendation;
+    }
+
+
+    // Calcule le niveau de vulnérabilité basé sur le score de risque
+    public VulnerabilityLevel getVulnerabilityLevel() {
+        return VulnerabilityLevel.fromScore(this.calculateRiskScore());
     }
 
     // --- Logique Métier ---

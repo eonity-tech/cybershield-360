@@ -4,6 +4,7 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/domain/Software.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/domain/type/DeviceType.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/domain/type/OsType.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/domain/type/VulnerabilityLevel.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/model/GlobalDeviceDashboardSummary.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/EnrollDeviceUseCase.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/RecordNetworkTrafficUseCase.java
@@ -14,4 +15,5 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/out/event/DeviceEventPublisher.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/usecase/EnrollDeviceService.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/usecase/NetworkMetricService.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/usecase/SecurityAnalyzerService.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/usecase/SoftwareService.java

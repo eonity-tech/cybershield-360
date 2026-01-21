@@ -52,6 +52,9 @@ public class DeviceEntity {
     @Column(name = "open_ports")
     private String openPorts;
 
+    @Column(name = "security_recommendation", length = 1000)
+    private String securityRecommendation;
+
     public DeviceEntity() {}
 
     // --- MAPPERS ---
@@ -73,6 +76,7 @@ public class DeviceEntity {
         entity.setTtl(domain.getTtl());
         entity.setOpenPorts(domain.getOpenPorts());
         entity.setStatus(domain.getStatus().name());
+        entity.setSecurityRecommendation(domain.getSecurityRecommendation());
 
         // Conversion Date (Instant -> LocalDateTime UTC)
         if (domain.getEnrolledAt() != null) {
@@ -102,6 +106,8 @@ public class DeviceEntity {
         if ("PROTECTED".equals(this.status)) device.markAsProtected();
         if ("COMPROMISED".equals(this.status)) device.markAsCompromised();
 
+        device.setSecurityRecommendation(this.securityRecommendation);
+
         return device;
     }
 
@@ -130,4 +136,6 @@ public class DeviceEntity {
     public void setTtl(Integer ttl) { this.ttl = ttl; }
     public String getOpenPorts() { return openPorts; }
     public void setOpenPorts(String openPorts) { this.openPorts = openPorts; }
+    public String getSecurityRecommendation() { return securityRecommendation; }
+    public void setSecurityRecommendation(String securityRecommendation) { this.securityRecommendation = securityRecommendation; }
 }

@@ -71,6 +71,7 @@ public class DevicePersistenceAdapter implements DeviceRepository {
         entity.setVendor(domain.getVendor());
         entity.setTtl(domain.getTtl());
         entity.setOpenPorts(domain.getOpenPorts());
+        entity.setSecurityRecommendation(domain.getSecurityRecommendation());
 
         if (domain.getEnrolledAt() != null) {
             entity.setEnrolledAt(java.time.LocalDateTime.ofInstant(
@@ -110,6 +111,8 @@ public class DevicePersistenceAdapter implements DeviceRepository {
                 entity.getTtl(),
                 entity.getOpenPorts()
         );
+
+        domain.setSecurityRecommendation(entity.getSecurityRecommendation());
 
         // Restauration du statut
         if ("PROTECTED".equals(entity.getStatus())) {

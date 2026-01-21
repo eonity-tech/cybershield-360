@@ -8,5 +8,7 @@ import java.util.UUID;
 public record GlobalStatusResponse(
         UUID deviceId,
         String status,
-        String message
+        String message,
+        String securityRecommendation,
+        String vulnerabilityLevel
 ) {}

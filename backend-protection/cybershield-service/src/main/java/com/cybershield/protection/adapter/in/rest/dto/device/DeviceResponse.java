@@ -16,7 +16,8 @@ public record DeviceResponse(
         String status,
         String enrolledAt,
         Double riskScore,
-        String securityRecommendation
+        String securityRecommendation,
+        String vulnerabilityLevel
 ) {
     public static DeviceResponse fromDomain(Device device) {
         return new DeviceResponse(
@@ -33,7 +34,8 @@ public record DeviceResponse(
                 device.getStatus().name(),
                 (device.getEnrolledAt() != null) ? device.getEnrolledAt().toString() : null,
                 device.calculateRiskScore(),
-                device.getSecurityRecommendation()
+                device.getSecurityRecommendation(),
+                device.getVulnerabilityLevel().name()
         );
     }
 }

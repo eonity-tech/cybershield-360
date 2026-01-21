@@ -2,6 +2,7 @@ com/cybershield/protection/adapter/in/rest/NetworkMonitoringController.class
 com/cybershield/protection/adapter/out/persistence/device/DeviceEntity.class
 com/cybershield/protection/adapter/out/event/RedisDeviceEventPublisher.class
 com/cybershield/protection/CyberShieldApplication.class
+com/cybershield/protection/adapter/in/rest/dto/global/GlobalDashboardResponse$DeviceSummary.class
 com/cybershield/protection/adapter/in/rest/error/ApiError.class
 com/cybershield/protection/adapter/in/rest/SoftwareController.class
 com/cybershield/protection/adapter/out/persistence/software/SoftwarePersistenceAdapter.class
@@ -26,6 +27,7 @@ com/cybershield/protection/adapter/out/persistence/SpringDataDeviceRepository.cl
 com/cybershield/protection/config/DomainConfiguration.class
 com/cybershield/protection/adapter/in/rest/dto/global/GlobalStatusResponse.class
 com/cybershield/protection/config/WebConfig.class
+com/cybershield/protection/adapter/in/rest/dto/global/GlobalDashboardResponse.class
 com/cybershield/protection/adapter/in/rest/DeviceController.class
 com/cybershield/protection/config/SecurityConfig.class
 com/cybershield/protection/adapter/in/rest/dto/software/SoftwareInclusionRequest.class

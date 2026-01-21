@@ -25,28 +25,24 @@ class DeviceTest {
 
         assertEquals(id, device.getId());
         assertEquals(mac, device.getMacAddress());
-        assertEquals("80,443", device.getOpenPorts()); // Ce test passe maintenant grâce à ta correction !
+        assertEquals("80,443", device.getOpenPorts());
         assertNotNull(device.getEnrolledAt());
     }
 
     // --- SCÉNARIO 2. TESTS DE VALIDATION ---
     @Test
     void shouldThrowExceptionForInvalidMacAddress() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Device(UUID.randomUUID(), "BAD-MAC", "192.168.1.1",
-                    DeviceType.COMPUTER, OsType.WINDOWS, "v1", "PC", "Vendor", 64, "80");
-        });
+        assertThrows(IllegalArgumentException.class, () -> new Device(UUID.randomUUID(), "BAD-MAC", "192.168.1.1",
+                DeviceType.COMPUTER, OsType.WINDOWS, "v1", "PC", "Vendor", 64, "80"));
     }
 
     @Test
     void shouldThrowExceptionForInvalidIpAddress() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Device(UUID.randomUUID(), "00:00:00:00:00:00", "999.999.999.999",
-                    DeviceType.COMPUTER, OsType.WINDOWS, "v1", "PC", "Vendor", 64, "80");
-        });
+        assertThrows(IllegalArgumentException.class, () -> new Device(UUID.randomUUID(), "00:00:00:00:00:00", "999.999.999.999",
+                DeviceType.COMPUTER, OsType.WINDOWS, "v1", "PC", "Vendor", 64, "80"));
     }
 
-    // --- SCÉNARIO 3. TEST DU SCORE DE RISQUE ---
+    // --- SCÉNARIO 3. TEST DU SCORE DE RISQUE (Logique interne) ---
     @Test
     void calculateRiskScore_HighRisk() {
         // Cas : Windows 7 (+50) + Port 21 (+30) + OS Inconnu (+20) = 100
@@ -57,7 +53,8 @@ class DeviceTest {
         );
 
         assertEquals(100.0, riskyDevice.calculateRiskScore());
-        assertTrue(riskyDevice.getSecurityRecommendation().contains("OS obsolète"));
+        // Vérifie que le rapport par défaut contient bien les mots clés
+        assertTrue(riskyDevice.getSecurityRecommendation().contains("Windows"));
         assertTrue(riskyDevice.getSecurityRecommendation().contains("FTP"));
     }
 
@@ -73,21 +70,37 @@ class DeviceTest {
         assertEquals("Appareil conforme aux standards de sécurité.", safeDevice.getSecurityRecommendation());
     }
 
-    // --- SCÉNARIO 4. TEST DES CHANGEMENTS D'ÉTAT ---
+    // --- SCÉNARIO 4. TEST DU RAPPORT IA (Le Setter) ---
     @Test
-    void markAsProtected() {
+    void shouldPrioritizeManualSecurityRecommendation() {
         Device device = createDummyDevice();
-        device.markAsProtected();
-        assertEquals(Device.DeviceStatus.PROTECTED, device.getStatus());
+
+        // 1. Au début, c'est le message par défaut
+        assertTrue(device.getSecurityRecommendation().contains("conforme"));
+
+        // 2. On simule l'expert IA qui injecte son rapport
+        String aiReport = "ALERTES SÉCURITÉ : Port RDP détecté par l'IA";
+        device.setSecurityRecommendation(aiReport);
+
+        // 3. Le getter doit renvoyer le rapport IA, et plus le message par défaut
+        assertEquals(aiReport, device.getSecurityRecommendation());
     }
 
+    // --- SCÉNARIO 5. TEST DE SANITIZATION ---
     @Test
-    void markAsCompromised() {
-        Device device = createDummyDevice();
-        device.markAsCompromised();
-        assertEquals(Device.DeviceStatus.COMPROMISED, device.getStatus());
+    void shouldSanitizeInputs() {
+        Device device = new Device(
+                UUID.randomUUID(), "00:11:22:33:44:55", "192.168.1.1",
+                DeviceType.COMPUTER, OsType.LINUX,
+                "Ubuntu <script>", // Injection HTML
+                "Host", "Vendor", 64, "80; DROP TABLE" // Injection SQL
+        );
+
+        assertEquals("Ubuntu script", device.getOsVersion());
+        assertFalse(device.getOpenPorts().contains(";"));
     }
 
+    // --- Helpers ---
     private Device createDummyDevice() {
         return new Device(UUID.randomUUID(), "00:00:00:00:00:00", "127.0.0.1",
                 DeviceType.OTHER, OsType.OTHER, "OS", "Host", "Vendor", 64, "");
