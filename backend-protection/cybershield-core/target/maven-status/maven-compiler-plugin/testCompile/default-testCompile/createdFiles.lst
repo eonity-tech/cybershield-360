@@ -1,4 +1,6 @@
 com/cybershield/protection/core/usecase/EnrollDeviceServiceTest.class
+com/cybershield/protection/core/domain/OrganizationPolicyTest.class
+com/cybershield/protection/core/usecase/OrganizationPolicyServiceTest.class
 com/cybershield/protection/core/domain/NetworkMetricTest.class
 com/cybershield/protection/core/domain/DeviceTest.class
 com/cybershield/protection/core/usecase/NetworkMetricServiceTest.class

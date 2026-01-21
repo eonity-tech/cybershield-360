@@ -1,9 +1,11 @@
 package com.cybershield.protection.adapter.in.rest.error;
 
 import com.cybershield.protection.core.domain.CompliancePolicy;
+import com.cybershield.protection.core.exception.PolicyAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -114,5 +117,19 @@ public class GlobalExceptionHandler {
                 "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource."
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    /**
+     * Gère les tentatives de création de politique déjà existante
+     */
+    @ExceptionHandler(PolicyAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handlePolicyAlreadyExists(PolicyAlreadyExistsException ex) {
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Data Conflict", // Un code d'erreur générique
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }

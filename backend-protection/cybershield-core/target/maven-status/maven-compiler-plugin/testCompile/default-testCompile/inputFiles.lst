@@ -1,6 +1,8 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/domain/CompliancePolicyTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/domain/DeviceTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/domain/NetworkMetricTest.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/domain/OrganizationPolicyTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/usecase/EnrollDeviceServiceTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/usecase/NetworkMetricServiceTest.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/usecase/OrganizationPolicyServiceTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/test/java/com/cybershield/protection/core/usecase/SoftwareServiceTest.java

@@ -1,3 +1,4 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/test/java/com/cybershield/protection/adapter/out/persistence/device/DeviceEntityTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/test/java/com/cybershield/protection/adapter/out/persistence/network/NetworkMetricEntityTest.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/test/java/com/cybershield/protection/adapter/out/persistence/organization/OrganizationPolicyEntityTest.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/test/java/com/cybershield/protection/adapter/out/persistence/software/SoftwareEntityTest.java

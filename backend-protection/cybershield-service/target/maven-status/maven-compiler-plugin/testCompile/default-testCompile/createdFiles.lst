@@ -1,3 +1,4 @@
+com/cybershield/protection/adapter/out/persistence/organization/OrganizationPolicyEntityTest.class
+com/cybershield/protection/adapter/out/persistence/software/SoftwareEntityTest.class
 com/cybershield/protection/adapter/out/persistence/network/NetworkMetricEntityTest.class
 com/cybershield/protection/adapter/out/persistence/device/DeviceEntityTest.class
-com/cybershield/protection/adapter/out/persistence/software/SoftwareEntityTest.class

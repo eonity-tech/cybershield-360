@@ -1,6 +1,7 @@
 com/cybershield/protection/adapter/in/rest/NetworkMonitoringController.class
 com/cybershield/protection/adapter/out/persistence/device/DeviceEntity.class
 com/cybershield/protection/adapter/out/event/RedisDeviceEventPublisher.class
+com/cybershield/protection/adapter/out/persistence/SpringDataOrganizationPolicyRepository.class
 com/cybershield/protection/CyberShieldApplication.class
 com/cybershield/protection/adapter/in/rest/dto/global/GlobalDashboardResponse$DeviceSummary.class
 com/cybershield/protection/adapter/in/rest/error/ApiError.class
@@ -10,6 +11,7 @@ com/cybershield/protection/adapter/in/rest/GlobalSyncController.class
 com/cybershield/protection/adapter/infrastructure/jwt/JwtParser.class
 com/cybershield/protection/adapter/in/rest/error/GlobalExceptionHandler.class
 com/cybershield/protection/adapter/in/rest/dto/global/GlobalEnrollmentRequest.class
+com/cybershield/protection/adapter/in/rest/OrganizationPolicyController.class
 com/cybershield/protection/adapter/in/rest/dto/network/NetworkTrafficResponse.class
 com/cybershield/protection/adapter/infrastructure/jwt/ConnectedUser.class
 com/cybershield/protection/adapter/in/rest/dto/device/DeviceResponse.class
@@ -21,13 +23,17 @@ com/cybershield/protection/adapter/out/persistence/SpringDataNetworkRepository.c
 com/cybershield/protection/adapter/out/persistence/device/DevicePersistenceAdapter.class
 com/cybershield/protection/adapter/in/rest/dto/network/NetworkTrafficRequest.class
 com/cybershield/protection/adapter/in/rest/dto/device/DeviceEnrollmentRequest.class
+com/cybershield/protection/adapter/out/persistence/organization/OrganizationPolicyPersistenceAdapter.class
+com/cybershield/protection/adapter/in/rest/OrganizationPolicyController$PolicyRequest.class
 com/cybershield/protection/adapter/infrastructure/jwt/JwtConnectedUserResolver.class
 com/cybershield/protection/adapter/out/persistence/software/SoftwareEntity.class
 com/cybershield/protection/adapter/out/persistence/SpringDataDeviceRepository.class
 com/cybershield/protection/config/DomainConfiguration.class
 com/cybershield/protection/adapter/in/rest/dto/global/GlobalStatusResponse.class
+com/cybershield/protection/adapter/in/rest/OrganizationPolicyController$OrganizationPolicyResponse.class
 com/cybershield/protection/config/WebConfig.class
 com/cybershield/protection/adapter/in/rest/dto/global/GlobalDashboardResponse.class
+com/cybershield/protection/adapter/out/persistence/organization/OrganizationPolicyEntity.class
 com/cybershield/protection/adapter/in/rest/DeviceController.class
 com/cybershield/protection/config/SecurityConfig.class
 com/cybershield/protection/adapter/in/rest/dto/software/SoftwareInclusionRequest.class
