@@ -10,6 +10,7 @@ com/cybershield/protection/adapter/out/persistence/software/SoftwarePersistenceA
 com/cybershield/protection/adapter/in/rest/GlobalSyncController.class
 com/cybershield/protection/adapter/infrastructure/jwt/JwtParser.class
 com/cybershield/protection/adapter/in/rest/error/GlobalExceptionHandler.class
+com/cybershield/protection/adapter/in/rest/TestEventController.class
 com/cybershield/protection/adapter/in/rest/dto/global/GlobalEnrollmentRequest.class
 com/cybershield/protection/adapter/in/rest/OrganizationPolicyController.class
 com/cybershield/protection/adapter/in/rest/dto/network/NetworkTrafficResponse.class

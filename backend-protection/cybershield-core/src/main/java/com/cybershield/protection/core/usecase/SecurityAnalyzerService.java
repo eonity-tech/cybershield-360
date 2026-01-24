@@ -10,52 +10,46 @@ import java.util.List;
 @Service
 public class SecurityAnalyzerService {
 
+    // 1. On injecte le port de sortie (Interface)
+    private final com.cybershield.protection.core.port.out.event.DeviceEventPublisher eventPublisher;
 
-    // Analyse un appareil et retourne une liste de recommandations de sécurité.
+    public SecurityAnalyzerService(com.cybershield.protection.core.port.out.event.DeviceEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    // 2. Méthode principale d'analyse de sécurité
     public String analyzeDeviceSecurity(Device device) {
         List<String> findings = new ArrayList<>();
+        double riskScore = 0.0;
 
-        // Sécurité anti-NullPointerException
         String ports = (device.getOpenPorts() != null) ? device.getOpenPorts() : "";
         String osVersion = (device.getOsVersion() != null) ? device.getOsVersion().toLowerCase() : "";
 
-        // --- 1. ANALYSE DES PORTS (Surface d'attaque) ---
-
-        // RDP (3389) : Le grand classique des attaques Ransomware
+        // --- 1. ANALYSE DES PORTS ET CALCUL DU SCORE ---
         if (ports.contains("3389")) {
-            if (device.getOsType() == OsType.WINDOWS) {
-                findings.add("(CRITIQUE) Port RDP (3389) ouvert. Risque élevé d'intrusion (Ransomware).");
-            } else {
-                findings.add("(SUSPECT) Port 3389 ouvert sur un système non-Windows.");
-            }
+            findings.add("(CRITIQUE) Port RDP (3389) ouvert.");
+            riskScore += 50.0;
         }
-
-        // Telnet (23) : Obsolète
         if (ports.contains("23")) {
-            findings.add("(DANGER) Port Telnet (23) détecté. Protocole non chiffré, mot de passe interceptable.");
+            findings.add("(DANGER) Port Telnet (23) détecté.");
+            riskScore += 40.0;
         }
-
-        // FTP (21) : Souvent non sécurisé
-        if (ports.contains("21")) {
-            findings.add("(AVERTISSEMENT) Serveur FTP (21) détecté. Préférez SFTP (22).");
-        }
-
-        // SMB (445) : Vecteur de propagation (WannaCry)
         if (ports.contains("445") && device.getOsType() == OsType.WINDOWS) {
-            findings.add("(URGENT) Protocole SMB (445) exposé. Vérifiez les correctifs de sécurité (MS17-010).");
+            findings.add("(URGENT) Protocole SMB (445) exposé.");
+            riskScore += 30.0;
         }
 
-        // --- 2. ANALYSE DU SYSTÈME (Obsolescence) ---
-
-        if (device.getOsType() == OsType.WINDOWS) {
-            if (osVersion.contains("xp") || osVersion.contains("7") || osVersion.contains("vista") ||
-                    osVersion.contains("2003") || osVersion.contains("2008")) {
-                findings.add("(CRITIQUE) OS en fin de vie (" + device.getOsVersion() + "). Plus de mises à jour de sécurité.");
-            }
+        // --- 2. DÉCLENCHEMENT DE LA QUARANTAINE (Action Proactive) ---
+        // Dépassement du seuil critique 80
+        if (riskScore >= 80.0) {
+            eventPublisher.publishQuarantineAlert(
+                    device.getId(),
+                    "Score de risque élevé : " + riskScore + ". Menaces détectées : " + String.join(", ", findings),
+                    riskScore
+            );
         }
 
-        // --- 3. SYNTHÈSE ---
-
+        // --- 3. SYNTHÈSE POUR LE DASHBOARD ---
         if (findings.isEmpty()) {
             return "Appareil sain. Aucune vulnérabilité critique détectée sur les ports analysés.";
         } else {

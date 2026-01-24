@@ -36,6 +36,9 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/**", "/webjars/**", "/v3/api-docs/**").permitAll()
                         .pathMatchers("/api/v1/network-monitoring/dashboard").permitAll()
 
+                        // Endpoint de test des événements Redis
+                        .pathMatchers("/api/v1/test/**").permitAll()
+
                         // C. LE RESTE (Keycloak / Devices / Admin)
                         .anyExchange().authenticated()
                 )
