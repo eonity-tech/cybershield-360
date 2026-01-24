@@ -17,7 +17,6 @@ import java.util.UUID;
 public class DevicePersistenceAdapter implements DeviceRepository {
 
     private static final Logger log = LoggerFactory.getLogger(DevicePersistenceAdapter.class);
-
     private final SpringDataDeviceRepository springRepository;
 
     public DevicePersistenceAdapter(SpringDataDeviceRepository springRepository) {
@@ -42,6 +41,7 @@ public class DevicePersistenceAdapter implements DeviceRepository {
     @Override
     public Device save(Device device) {
         log.info("Sauvegarde du device en base : {}", device.getId());
+        // On convertit le domaine en entité (le mapper toEntity s'occupe du flag blacklisted)
         DeviceEntity entity = toEntity(device);
         DeviceEntity savedEntity = springRepository.save(entity);
         return toDomain(savedEntity);
@@ -67,6 +67,9 @@ public class DevicePersistenceAdapter implements DeviceRepository {
         entity.setOpenPorts(domain.getOpenPorts());
         entity.setSecurityRecommendation(domain.getSecurityRecommendation());
 
+        // ✅ CRUCIAL : Transfert de l'état du domaine vers l'entité pour SQL
+        entity.setBlacklisted(domain.isBlacklisted());
+
         if (domain.getEnrolledAt() != null) {
             entity.setEnrolledAt(java.time.LocalDateTime.ofInstant(
                     domain.getEnrolledAt(),
@@ -76,7 +79,6 @@ public class DevicePersistenceAdapter implements DeviceRepository {
 
         // Mapping des enums
         if (domain.getType() != null) {
-            // mapping pour gérer COMPUTER -> WORKSTATION
             if (domain.getType() == DeviceType.COMPUTER) {
                 entity.setType("WORKSTATION");
             } else {
@@ -97,16 +99,17 @@ public class DevicePersistenceAdapter implements DeviceRepository {
     private Device toDomain(DeviceEntity entity) {
         DeviceType type = DeviceType.UNKNOWN;
 
-        //
+        // Gestion du mapping WORKSTATION -> COMPUTER
         if (entity.getType() != null) {
-            // mapping pour gérer WORKSTATION -> COMPUTER
             if ("WORKSTATION".equalsIgnoreCase(entity.getType())) {
                 type = DeviceType.COMPUTER;
             } else {
                 try {
                     type = DeviceType.valueOf(entity.getType());
                 } catch (IllegalArgumentException e) {
-                    type = DeviceType.UNKNOWN;
+                    // Pas besoin de réassigner UNKNOWN ici,
+                    // la variable l'est déjà par défaut.
+                    log.warn("Type inconnu détecté en base : {}", entity.getType());
                 }
             }
         }
@@ -133,6 +136,9 @@ public class DevicePersistenceAdapter implements DeviceRepository {
         } else if ("COMPROMISED".equals(entity.getStatus())) {
             domain.markAsCompromised();
         }
+
+        // ✅ CRUCIAL : Restauration de l'état depuis SQL vers le Domaine
+        domain.setBlacklisted(entity.isBlacklisted());
 
         return domain;
     }

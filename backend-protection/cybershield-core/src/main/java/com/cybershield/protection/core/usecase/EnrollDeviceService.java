@@ -5,18 +5,21 @@ import com.cybershield.protection.core.domain.Device;
 import com.cybershield.protection.core.domain.type.DeviceType;
 import com.cybershield.protection.core.domain.type.OsType;
 import com.cybershield.protection.core.port.in.EnrollDeviceUseCase;
+import com.cybershield.protection.core.port.in.BlockDeviceUseCase; // Ajout de l'import
 import com.cybershield.protection.core.port.out.DeviceRepository;
 import com.cybershield.protection.core.port.out.event.DeviceEventPublisher;
 
 import java.util.UUID;
 import java.util.Optional;
 
-public class EnrollDeviceService implements EnrollDeviceUseCase {
+// On implémente les deux contrats (In)
+public class EnrollDeviceService implements EnrollDeviceUseCase, BlockDeviceUseCase {
 
     private final DeviceRepository deviceRepository;
     private final DeviceEventPublisher eventPublisher;
     private final CompliancePolicy compliancePolicy = new CompliancePolicy();
 
+    // Constructeur unique et propre
     public EnrollDeviceService(DeviceRepository deviceRepository,
                                DeviceEventPublisher eventPublisher) {
         this.deviceRepository = deviceRepository;
@@ -29,22 +32,16 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
                          String vendor, Integer ttl, String openPorts) {
 
         Optional<Device> existingDevice = deviceRepository.findByMacAddress(macAddress);
-
         Device device;
 
+        // 1. Vérification de l'existence
         if (existingDevice.isPresent()) {
-            // --- CAS 1 : MISE À JOUR (UPDATE) ---
             device = existingDevice.get();
-
-            // On met à jour les données qui ont pu changer (IP, Ports, etc.)
-            // ⚠️ Il faut ajouter cette méthode dans Device.java (voir plus bas)
+            // Mise à jour des infos réseau
             device.updateNetworkInfo(ipAddress, hostname, vendor, ttl, openPorts);
-
-            // On reset la recommandation pour forcer le recalcul avec les nouveaux ports
             device.setSecurityRecommendation(null);
-
         } else {
-            // --- CAS 2 : CRÉATION (INSERT) ---
+            // 2. Création d'un nouveau Device
             device = new Device(
                     UUID.randomUUID(),
                     macAddress,
@@ -57,16 +54,44 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
                     ttl,
                     openPorts
             );
-            // Notification seulement à la création (optionnel)
             eventPublisher.publishDeviceCreated(device);
         }
 
-        // 3. Validation de conformité (Règles métier basiques)
         compliancePolicy.validate(device);
-
-        // 4. Persistance (Sauvegarde ou Update)
-        // Le calcul de sécurité (getSecurityRecommendation) se fera automatiquement
-        // grâce à ton entité Device intelligente quand on la relira ou la convertira en JSON.
         return deviceRepository.save(device);
+    }
+
+    // 3. Implémentation du blocage/déblocage des Devices
+    @Override
+    public void blockDevice(UUID deviceId) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new RuntimeException("Device non trouvé"));
+
+        device.setBlacklisted(true);
+        deviceRepository.save(device);
+
+        // on met en quarantaine
+        eventPublisher.publishQuarantineAlert(
+                device.getId(),
+                "ACTION ADMIN : Blocage immédiat de l'appareil.",
+                100.0 // Score maximum pour indiquer une menace élevée et action de l'IA
+        );
+    }
+
+    // 4. Implémentation du déblocage des Devices
+    @Override
+    public void unblockDevice(UUID deviceId) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new RuntimeException("Device non trouvé"));
+
+        device.setBlacklisted(false);
+        deviceRepository.save(device);
+
+        // onlève la quarantaine
+        eventPublisher.publishQuarantineAlert(
+                device.getId(),
+                "ACTION ADMIN : Restauration de l'accès.",
+                0.0 // Score minimum pour indiquer que tout est normal
+        );
     }
 }

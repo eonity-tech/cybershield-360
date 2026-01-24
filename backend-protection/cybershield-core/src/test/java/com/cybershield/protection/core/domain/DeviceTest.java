@@ -108,6 +108,26 @@ class DeviceTest {
         assertFalse(device.getOpenPorts().contains(";"));
     }
 
+    // --- SCÉNARIO 6. TEST DU BLACKLISTAGE (Kill Switch) ---
+    @Test
+    void shouldToggleBlacklistStatus() {
+        // GIVEN: Un appareil sain par défaut
+        Device device = createDummyDevice();
+        assertFalse(device.isBlacklisted(), "Un nouvel appareil ne doit pas être blacklisté par défaut");
+
+        // WHEN: L'administrateur active le blocage
+        device.setBlacklisted(true);
+
+        // THEN: L'état doit être mis à jour
+        assertTrue(device.isBlacklisted());
+
+        // WHEN: L'administrateur lève la sanction
+        device.setBlacklisted(false);
+
+        // THEN: L'appareil doit redevenir autorisé
+        assertFalse(device.isBlacklisted());
+    }
+
     // --- Helpers ---
     private Device createDummyDevice() {
         return new Device(UUID.randomUUID(), "00:00:00:00:00:00", "127.0.0.1",

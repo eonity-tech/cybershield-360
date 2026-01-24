@@ -55,6 +55,9 @@ public class DeviceEntity {
     @Column(name = "security_recommendation", length = 1000)
     private String securityRecommendation;
 
+    @Column(name = "is_blacklisted", nullable = false)
+    private Boolean isBlacklisted = false;
+
     public DeviceEntity() {}
 
     // --- MAPPERS ---
@@ -77,6 +80,7 @@ public class DeviceEntity {
         entity.setOpenPorts(domain.getOpenPorts());
         entity.setStatus(domain.getStatus().name());
         entity.setSecurityRecommendation(domain.getSecurityRecommendation());
+        entity.setBlacklisted(domain.isBlacklisted());
 
         // Conversion Date (Instant -> LocalDateTime UTC)
         if (domain.getEnrolledAt() != null) {
@@ -107,6 +111,7 @@ public class DeviceEntity {
         if ("COMPROMISED".equals(this.status)) device.markAsCompromised();
 
         device.setSecurityRecommendation(this.securityRecommendation);
+        device.setBlacklisted(this.isBlacklisted);
 
         return device;
     }
@@ -138,4 +143,6 @@ public class DeviceEntity {
     public void setOpenPorts(String openPorts) { this.openPorts = openPorts; }
     public String getSecurityRecommendation() { return securityRecommendation; }
     public void setSecurityRecommendation(String securityRecommendation) { this.securityRecommendation = securityRecommendation; }
+    public boolean isBlacklisted() { return isBlacklisted != null && isBlacklisted; }
+    public void setBlacklisted(boolean blacklisted) { isBlacklisted = blacklisted; }
 }

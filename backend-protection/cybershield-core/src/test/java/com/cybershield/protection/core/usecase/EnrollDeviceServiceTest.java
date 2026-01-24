@@ -123,4 +123,41 @@ class EnrollDeviceServiceTest {
 
         verify(deviceRepository, never()).save(any());
     }
+
+    // --- SCÉNARIO 4 : Blocage Administrateur (Phase 6) ---
+    @Test
+    void shouldBlockDeviceAndPublishAlert() {
+        // GIVEN
+        UUID deviceId = UUID.randomUUID();
+        Device targetDevice = new Device(
+                deviceId, "00:AA:BB:CC:DD:EE", "192.168.1.15",
+                DeviceType.COMPUTER, OsType.WINDOWS, "11",
+                "PC-TARGET", "Dell", 128, "443"
+        );
+
+        // Simulation de la présence du device en base
+        when(deviceRepository.findById(deviceId)).thenReturn(Optional.of(targetDevice));
+        when(deviceRepository.save(any(Device.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        enrollDeviceService.blockDevice(deviceId);
+
+        // THEN
+        // 1. Vérifier que l'état interne du device a changé
+        assertTrue(targetDevice.isBlacklisted(), "Le device devrait être marqué comme blacklisté");
+
+        // 2. Vérifier que la persistance a été appelée
+        verify(deviceRepository).save(targetDevice);
+
+        // 3. Vérifier que l'ordre de Quarantaine a été envoyé à Redis (Phase 6)
+        ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
+        verify(eventPublisher).publishQuarantineAlert(
+                eq(deviceId),
+                reasonCaptor.capture(),
+                eq(100.0)
+        );
+
+        // Le motif doit mentionner l'action admin
+        assertTrue(reasonCaptor.getValue().contains("ACTION ADMIN"));
+    }
 }

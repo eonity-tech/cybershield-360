@@ -15,15 +15,15 @@ public class Device {
     private final DeviceType type;
     private final OsType osType;
     private final String osVersion;
-
     // --- champs pour l'analyse réseau (non final) ---
     private String hostname;
     private String vendor;
     private Integer ttl;
     private String openPorts;
-
     private DeviceStatus status;
     private final Instant enrolledAt;
+    // --- champ de liste noire ---
+    private boolean isBlacklisted;
 
     private static final Pattern MAC_PATTERN = Pattern.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
     private static final Pattern IP_PATTERN = Pattern.compile("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$");
@@ -187,6 +187,8 @@ public class Device {
     public String getOpenPorts() { return openPorts; }
     public DeviceStatus getStatus() { return status; }
     public Instant getEnrolledAt() { return enrolledAt; }
+    public boolean isBlacklisted() { return isBlacklisted; }
+    public void setBlacklisted(boolean blacklisted) { this.isBlacklisted = blacklisted; }
 
     public enum DeviceStatus { UNPROTECTED, PROTECTED, COMPROMISED }
 }

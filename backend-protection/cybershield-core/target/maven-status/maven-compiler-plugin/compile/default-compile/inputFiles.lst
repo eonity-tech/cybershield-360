@@ -8,6 +8,7 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/domain/type/VulnerabilityLevel.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/exception/PolicyAlreadyExistsException.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/model/GlobalDeviceDashboardSummary.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/BlockDeviceUseCase.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/DefineOrganizationPolicyUseCase.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/EnrollDeviceUseCase.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-core/src/main/java/com/cybershield/protection/core/port/in/RecordNetworkTrafficUseCase.java

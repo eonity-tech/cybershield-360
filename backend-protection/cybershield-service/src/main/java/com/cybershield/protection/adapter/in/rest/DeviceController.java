@@ -6,11 +6,10 @@ import com.cybershield.protection.core.domain.Device;
 import com.cybershield.protection.core.port.in.EnrollDeviceUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
+import java.util.UUID;
 import java.util.stream.Collectors; // ✅ Import indispensable
 
 @RestController
@@ -52,5 +51,20 @@ public class DeviceController {
         DeviceResponse response = DeviceResponse.fromDomain(domainDevice);
 
         return ResponseEntity.status(201).body(response);
+    }
+
+    // 4. Nouvelle méthode pour bloquer un Device (Phase 6)
+    @PostMapping("/security/{deviceId}/block")
+    public Mono<ResponseEntity<Void>> blockDevice(@PathVariable("deviceId") UUID deviceId) {
+        // Appel au UseCase du Core pour marquer le device en blacklist et notifier Redis [cite: 341, 343]
+        return Mono.fromRunnable(() -> enrollDeviceUseCase.blockDevice(deviceId))
+                .then(Mono.just(ResponseEntity.ok().build()));
+    }
+
+    // Méthode pour débloquer un Device
+    @PostMapping("/security/{deviceId}/unblock")
+    public Mono<ResponseEntity<Void>> unblockDevice(@PathVariable("deviceId") UUID deviceId) {
+        return Mono.fromRunnable(() -> enrollDeviceUseCase.unblockDevice(deviceId))
+                .then(Mono.just(ResponseEntity.ok().build()));
     }
 }
