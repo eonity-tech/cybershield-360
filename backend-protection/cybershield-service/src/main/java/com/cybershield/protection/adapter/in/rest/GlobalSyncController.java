@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/v1/sync")
 public class GlobalSyncController {
@@ -30,8 +32,15 @@ public class GlobalSyncController {
     @PostMapping("/full-report")
     public ResponseEntity<GlobalStatusResponse> syncAll(@Valid @RequestBody GlobalEnrollmentRequest request) {
 
-        // 1. Appel du service d'enrôlement avec les données du DTO
-        // On extrait chaque champ de request.device()
+        // ÉTAPE CRUCIALE : Conversion de la liste des ports ouverts en chaîne de caractères
+        String portsAsString = "";
+        if (request.device().openPorts() != null && !request.device().openPorts().isEmpty()) {
+            portsAsString = request.device().openPorts().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+        }
+
+        // 1. Enrôlement du Device
         Device device = enrollDeviceUseCase.enroll(
                 request.device().macAddress(),
                 request.device().ipAddress(),
@@ -41,25 +50,27 @@ public class GlobalSyncController {
                 request.device().hostname(),
                 request.device().vendor(),
                 request.device().ttl(),
-                request.device().openPorts()
+                portsAsString
         );
 
         // 2. Enregistrement des logiciels
-        // On utilise l'ID du device que l'on vient de créer
         request.softwares().forEach(sw -> softwareUseCase.register(
                 device.getId(),
                 sw.name(),
                 sw.version(),
+                sw.type(),
                 sw.publisher(),
                 sw.isRunning()
         ));
 
         // 3. Premier rapport réseau
-        trafficUseCase.record(
-                device.getId(),
-                request.initialTraffic().bytesSent(),
-                request.initialTraffic().bytesReceived()
-        );
+        if (request.initialTraffic() != null) {
+            trafficUseCase.record(
+                    device.getId(),
+                    request.initialTraffic().bytesSent(),
+                    request.initialTraffic().bytesReceived()
+            );
+        }
 
         // 4. Retour de la réponse
         return ResponseEntity.ok(new GlobalStatusResponse(

@@ -22,6 +22,7 @@ com/cybershield/protection/adapter/out/persistence/network/NetworkPersistenceAda
 com/cybershield/protection/adapter/out/persistence/SpringDataNetworkRepository.class
 com/cybershield/protection/adapter/out/persistence/device/DevicePersistenceAdapter.class
 com/cybershield/protection/adapter/in/rest/dto/network/NetworkTrafficRequest.class
+com/cybershield/protection/config/security/ApiKeyWebFilter.class
 com/cybershield/protection/adapter/in/rest/dto/device/DeviceEnrollmentRequest.class
 com/cybershield/protection/adapter/out/persistence/organization/OrganizationPolicyPersistenceAdapter.class
 com/cybershield/protection/adapter/in/rest/OrganizationPolicyController$PolicyRequest.class

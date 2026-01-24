@@ -49,3 +49,7 @@ management:
     web:
       exposure:
         include: health, info, metrics
+
+cybershield:
+  api:
+    key: "Yo-7E-shield-Secret-v1-super-$Ecure-!c!"

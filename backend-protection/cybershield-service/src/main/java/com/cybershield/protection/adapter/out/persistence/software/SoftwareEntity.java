@@ -20,6 +20,11 @@ public class SoftwareEntity {
 
     private String name;
     private String version;
+
+    // 1. AJOUT DU CHAMP EN BASE
+    @Column(name = "software_type")
+    private String type;
+
     private String publisher;
 
     @Column(name = "is_running")
@@ -28,7 +33,7 @@ public class SoftwareEntity {
     @Column(name = "critical_score")
     private Double criticalScore;
 
-    // 1. Constructeur par défaut (Obligatoire pour JPA)
+    // Constructeur par défaut (JPA)
     public SoftwareEntity() {}
 
     // 2. Conversion DOMAINE -> ENTITÉ (Pour sauvegarder)
@@ -38,6 +43,10 @@ public class SoftwareEntity {
         entity.setDeviceId(software.getDeviceId());
         entity.setName(software.getName());
         entity.setVersion(software.getVersion());
+
+        // AJOUT DU MAPPING DU TYPE
+        entity.setType(software.getType());
+
         entity.setPublisher(software.getPublisher());
         entity.setRunning(software.isRunning());
         entity.setCriticalScore(software.getCriticalScore());
@@ -46,17 +55,21 @@ public class SoftwareEntity {
 
     // 3. Conversion ENTITÉ -> DOMAINE (Pour lire)
     public Software toDomain() {
-        // A. On crée l'objet de base
-        Software domain = new Software(id, deviceId, name, version, publisher, isRunning);
+        Software domain = new Software(
+                id,
+                deviceId,
+                name,
+                version,
+                type,
+                publisher,
+                isRunning
+        );
 
-        // B. ✅ CORRECTION CRUCIALE ICI :
-        // On remet le score critique dans l'objet domaine, sinon il vaut 0.0 !
         domain.setCriticalScore(this.criticalScore);
-
         return domain;
     }
 
-    // --- GETTERS ET SETTERS ---
+    // --- GETTERS ET SETTERS POUR JPA ---
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
@@ -68,6 +81,10 @@ public class SoftwareEntity {
 
     public String getVersion() { return version; }
     public void setVersion(String version) { this.version = version; }
+
+    // GETTER/SETTER POUR LE TYPE
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
     public String getPublisher() { return publisher; }
     public void setPublisher(String publisher) { this.publisher = publisher; }

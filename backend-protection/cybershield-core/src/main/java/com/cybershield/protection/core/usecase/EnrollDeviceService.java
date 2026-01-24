@@ -9,23 +9,18 @@ import com.cybershield.protection.core.port.out.DeviceRepository;
 import com.cybershield.protection.core.port.out.event.DeviceEventPublisher;
 
 import java.util.UUID;
+import java.util.Optional;
 
 public class EnrollDeviceService implements EnrollDeviceUseCase {
 
     private final DeviceRepository deviceRepository;
     private final DeviceEventPublisher eventPublisher;
-    // 1. On ajoute le service d'analyse
-    private final SecurityAnalyzerService securityAnalyzerService;
-
     private final CompliancePolicy compliancePolicy = new CompliancePolicy();
 
-    // 2. On met à jour le constructeur pour l'injection de dépendance
     public EnrollDeviceService(DeviceRepository deviceRepository,
-                               DeviceEventPublisher eventPublisher,
-                               SecurityAnalyzerService securityAnalyzerService) {
+                               DeviceEventPublisher eventPublisher) {
         this.deviceRepository = deviceRepository;
         this.eventPublisher = eventPublisher;
-        this.securityAnalyzerService = securityAnalyzerService;
     }
 
     @Override
@@ -33,39 +28,45 @@ public class EnrollDeviceService implements EnrollDeviceUseCase {
                          OsType osType, String osVersion, String hostname,
                          String vendor, Integer ttl, String openPorts) {
 
-        // 1. Anti-doublon
-        if (deviceRepository.findByMacAddress(macAddress).isPresent()) {
-            throw new IllegalStateException("L'appareil avec l'adresse MAC " + macAddress + " est déjà enregistré.");
+        Optional<Device> existingDevice = deviceRepository.findByMacAddress(macAddress);
+
+        Device device;
+
+        if (existingDevice.isPresent()) {
+            // --- CAS 1 : MISE À JOUR (UPDATE) ---
+            device = existingDevice.get();
+
+            // On met à jour les données qui ont pu changer (IP, Ports, etc.)
+            // ⚠️ Il faut ajouter cette méthode dans Device.java (voir plus bas)
+            device.updateNetworkInfo(ipAddress, hostname, vendor, ttl, openPorts);
+
+            // On reset la recommandation pour forcer le recalcul avec les nouveaux ports
+            device.setSecurityRecommendation(null);
+
+        } else {
+            // --- CAS 2 : CRÉATION (INSERT) ---
+            device = new Device(
+                    UUID.randomUUID(),
+                    macAddress,
+                    ipAddress,
+                    type,
+                    osType,
+                    osVersion,
+                    hostname,
+                    vendor,
+                    ttl,
+                    openPorts
+            );
+            // Notification seulement à la création (optionnel)
+            eventPublisher.publishDeviceCreated(device);
         }
 
-        // 2. Création de l'entité
-        Device newDevice = new Device(
-                UUID.randomUUID(),
-                macAddress,
-                ipAddress,
-                type,
-                osType,
-                osVersion,
-                hostname,
-                vendor,
-                ttl,
-                openPorts
-        );
+        // 3. Validation de conformité (Règles métier basiques)
+        compliancePolicy.validate(device);
 
-        // 3. Sécurité : Validation de conformité
-        compliancePolicy.validate(newDevice);
-
-        // 4. Analyse intelligente de sécurité (Expert Cyber gratuit)
-        // On génère le rapport et on l'injecte dans l'objet avant de sauvegarder
-        String securityReport = securityAnalyzerService.analyzeDeviceSecurity(newDevice);
-        newDevice.setSecurityRecommendation(securityReport);
-
-        // 5. Persistance
-        Device savedDevice = deviceRepository.save(newDevice);
-
-        // 6. Notification (Redis)
-        eventPublisher.publishDeviceCreated(savedDevice);
-
-        return savedDevice;
+        // 4. Persistance (Sauvegarde ou Update)
+        // Le calcul de sécurité (getSecurityRecommendation) se fera automatiquement
+        // grâce à ton entité Device intelligente quand on la relira ou la convertira en JSON.
+        return deviceRepository.save(device);
     }
 }

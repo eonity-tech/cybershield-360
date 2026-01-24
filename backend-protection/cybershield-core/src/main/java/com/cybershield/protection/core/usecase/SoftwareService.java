@@ -7,6 +7,7 @@ import com.cybershield.protection.core.port.out.SoftwareRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
 
@@ -22,29 +23,39 @@ public class SoftwareService implements RegisterSoftwareUseCase {
     }
 
     @Override
-    public Software register(UUID deviceId, String name, String version, String publisher, boolean isRunning) {
+    public Software register(UUID deviceId, String name, String version, String type, String publisher, boolean isRunning) {
 
-        // 1. GARDE DE SÉCURITÉ : Vérification de la présence de l'ID
+        // 1. Garde-fou simple
         if (deviceId == null) {
-            throw new IllegalArgumentException("L'identifiant de l'appareil est obligatoire pour enregistrer un logiciel.");
+            throw new IllegalArgumentException("L'identifiant de l'appareil est obligatoire.");
         }
 
-        // 2. VÉRIFICATION D'EXISTENCE (Optionnel mais recommandé)
-        // On s'assure que le device existe vraiment en BDD avant de lui lier un software
+        // 2. Vérification de l'existence de l'appareil
         if (!deviceRepository.existsById(deviceId)) {
-            throw new NoSuchElementException("Impossible d'enregistrer le logiciel : l'appareil avec l'ID " + deviceId + " n'existe pas.");
+            throw new NoSuchElementException("Impossible d'enregistrer le logiciel : l'appareil " + deviceId + " n'existe pas.");
         }
 
-        Software newSoftware = new Software(
-                UUID.randomUUID(),
-                deviceId,
-                name,
-                version,
-                publisher,
-                isRunning
-        );
+        // 3. Logique UPSERT (Anti-Doublon)
+        Optional<Software> existingSoftware = softwareRepository.findByDeviceIdAndName(deviceId, name);
 
-        return softwareRepository.save(newSoftware);
+        if (existingSoftware.isPresent()) {
+            // Mise à jour
+            Software softwareToUpdate = existingSoftware.get();
+            softwareToUpdate.updateInfo(version, type);
+            return softwareRepository.save(softwareToUpdate);
+        } else {
+            // Création
+            Software newSoftware = new Software(
+                    UUID.randomUUID(),
+                    deviceId,
+                    name,
+                    version,
+                    type,
+                    publisher,
+                    isRunning
+            );
+            return softwareRepository.save(newSoftware);
+        }
     }
 
     @Override
@@ -55,9 +66,11 @@ public class SoftwareService implements RegisterSoftwareUseCase {
 
     @Override
     public List<Software> findCriticalSoftware() {
-        // Logique pour filtrer les logiciels à risque (ex: versions obsolètes)
         return softwareRepository.findAll().stream()
-                .filter(s -> s.getVersion().contains("beta") || s.getName().equalsIgnoreCase("wireshark"))
+                .filter(s -> {
+                    // Exemple de règle métier : Score > 80 ou nom suspect
+                    return s.getCriticalScore() != null && s.getCriticalScore() > 80;
+                })
                 .toList();
     }
 }

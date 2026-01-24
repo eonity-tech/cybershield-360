@@ -9,6 +9,7 @@ import com.cybershield.protection.core.port.out.event.DeviceEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,72 +23,83 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class EnrollDeviceServiceTest {
 
-    // 1. Les Mocks (Gérés par MockitoExtension)
     @Mock
     private DeviceRepository deviceRepository;
 
     @Mock
     private DeviceEventPublisher eventPublisher;
 
-    // 2. Le service d'analyse de sécurité réel
-    private final SecurityAnalyzerService securityAnalyzerService = new SecurityAnalyzerService();
-
-    // 3. Le Service à tester
     private EnrollDeviceService enrollDeviceService;
 
     @BeforeEach
     void setUp() {
-        enrollDeviceService = new EnrollDeviceService(deviceRepository, eventPublisher, securityAnalyzerService);
+        // Initialisation du service avec les mocks
+        enrollDeviceService = new EnrollDeviceService(deviceRepository, eventPublisher);
     }
 
-    // --- SCÉNARIO 1 : Succès ---
+    // --- SCÉNARIO 1 : Création (Nouveau Device) ---
     @Test
-    void shouldEnrollDeviceSuccessfully() {
+    void shouldEnrollNewDeviceSuccessfully() {
         // GIVEN
         String mac = "00:11:22:33:44:55";
         String ip = "192.168.1.10";
 
+        // Simule qu'aucun device n'existe avec cette MAC
         when(deviceRepository.findByMacAddress(mac)).thenReturn(Optional.empty());
+
+        // Simule la sauvegarde (retourne l'objet qu'on lui donne)
         when(deviceRepository.save(any(Device.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // WHEN
         Device result = enrollDeviceService.enroll(
                 mac, ip, DeviceType.COMPUTER, OsType.LINUX, "Ubuntu 22.04",
-                "My-Host", "Dell", 64, "80,443"
+                "My-Host", "Dell", 64, "443" // Port safe
         );
 
         // THEN
         assertNotNull(result);
-        assertNotNull(result.getId());
         assertEquals(mac, result.getMacAddress());
 
-        // On vérifie le rapport de sécurité généré
-        assertNotNull(result.getSecurityRecommendation());
+        // Vérifie que l'analyse de sécurité interne a fonctionné (Port 443 = Score 0 = Sain)
         assertTrue(result.getSecurityRecommendation().contains("Appareil sain"));
 
         verify(deviceRepository).save(any(Device.class));
+        // En création, on DOIT publier l'événement
         verify(eventPublisher).publishDeviceCreated(result);
     }
 
-    // --- SCÉNARIO 2 : Erreur - Doublon ---
+    // --- SCÉNARIO 2 : Mise à jour (Device existant) ---
     @Test
-    void shouldThrowExceptionWhenDeviceAlreadyExists() {
+    void shouldUpdateDeviceWhenAlreadyExists() {
         // GIVEN
         String mac = "AA:BB:CC:DD:EE:FF";
-        Device existingDevice = new Device(UUID.randomUUID(), mac, "10.0.0.1", DeviceType.OTHER, OsType.OTHER, "v1", "h", "v", 64, "");
+        UUID existingId = UUID.randomUUID();
+
+        // Un appareil existant avec une vieille IP et des ports sains
+        Device existingDevice = new Device(existingId, mac, "10.0.0.1", DeviceType.SERVER, OsType.LINUX, "v1", "OldHost", "OldVendor", 64, "80");
+        existingDevice.setSecurityRecommendation("Old Report"); // On simule un vieux rapport
 
         when(deviceRepository.findByMacAddress(mac)).thenReturn(Optional.of(existingDevice));
+        when(deviceRepository.save(any(Device.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // WHEN & THEN
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            enrollDeviceService.enroll(
-                    mac, "192.168.1.20", DeviceType.IOT, OsType.OTHER, "Firmware",
-                    "Cam-01", "Sony", 64, "80"
-            );
-        });
+        // WHEN : On enrôle le MÊME appareil, mais avec des nouvelles infos (Nouvlle IP + Port RDP Dangereux)
+        Device result = enrollDeviceService.enroll(
+                mac, "192.168.1.99", DeviceType.SERVER, OsType.LINUX, "v1",
+                "NewHost", "NewVendor", 64, "3389" // 🚨 Port RDP ajouté !
+        );
 
-        assertEquals("L'appareil avec l'adresse MAC " + mac + " est déjà enregistré.", exception.getMessage());
-        verify(deviceRepository, never()).save(any());
+        // THEN
+        assertEquals(existingId, result.getId()); // L'ID ne doit pas changer
+        assertEquals("192.168.1.99", result.getIpAddress()); // L'IP doit être mise à jour
+        assertEquals("3389", result.getOpenPorts()); // Les ports doivent être mis à jour
+
+        // VÉRIFICATION CLEF : Le rapport de sécurité a dû changer !
+        assertFalse(result.getSecurityRecommendation().contains("Old Report"));
+        assertTrue(result.getSecurityRecommendation().contains("URGENT")); // Car RDP = Urgent
+
+        verify(deviceRepository).save(existingDevice);
+
+        // En mise à jour, on NE DOIT PAS publier l'événement
         verify(eventPublisher, never()).publishDeviceCreated(any());
     }
 
@@ -96,13 +108,14 @@ class EnrollDeviceServiceTest {
     void shouldRejectNonCompliantDevice() {
         // GIVEN
         String mac = "11:22:33:44:55:66";
+        // Peu importe si le device existe ou pas, la conformité est vérifiée avant/pendant
         when(deviceRepository.findByMacAddress(mac)).thenReturn(Optional.empty());
 
         // WHEN & THEN
         assertThrows(CompliancePolicy.ComplianceException.class, () -> {
             enrollDeviceService.enroll(
                     mac, "10.0.0.50", DeviceType.IOT,
-                    OsType.UNKNOWN, // Interdit
+                    OsType.UNKNOWN, // ❌ OS Inconnu = Interdit par la Policy
                     "Chinese Firmware v1",
                     "Unknown-Cam", "NoName", 64, "23"
             );

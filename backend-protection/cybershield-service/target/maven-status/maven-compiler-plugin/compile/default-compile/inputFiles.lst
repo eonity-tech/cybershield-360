@@ -34,3 +34,4 @@
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/config/DomainConfiguration.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/config/SecurityConfig.java
 /mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/config/WebConfig.java
+/mnt/Datas/Eonity/cybershield-360/backend-protection/cybershield-service/src/main/java/com/cybershield/protection/config/security/ApiKeyWebFilter.java

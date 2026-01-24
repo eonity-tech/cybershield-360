@@ -45,7 +45,7 @@ class DeviceTest {
     // --- SCÉNARIO 3. TEST DU SCORE DE RISQUE (Logique interne) ---
     @Test
     void calculateRiskScore_HighRisk() {
-        // Cas : Windows 7 (+50) + Port 21 (+30) + OS Inconnu (+20) = 100
+        // Cas : Windows 7 (+60) + Port 21 (+30) + OS Inconnu (+10) = 100
         Device riskyDevice = new Device(
                 UUID.randomUUID(), "00:11:22:33:44:55", "192.168.1.100",
                 DeviceType.COMPUTER, OsType.UNKNOWN, "Windows 7",
@@ -53,8 +53,11 @@ class DeviceTest {
         );
 
         assertEquals(100.0, riskyDevice.calculateRiskScore());
-        // Vérifie que le rapport par défaut contient bien les mots clés
-        assertTrue(riskyDevice.getSecurityRecommendation().contains("Windows"));
+
+        // ✅ CORRECTION : On vérifie les nouveaux messages générés par Device.java
+        // "Windows 7" déclenche "OS Obsolète"
+        assertTrue(riskyDevice.getSecurityRecommendation().contains("Obsolète"));
+        // Port 21 déclenche "FTP"
         assertTrue(riskyDevice.getSecurityRecommendation().contains("FTP"));
     }
 
@@ -67,7 +70,10 @@ class DeviceTest {
         );
 
         assertEquals(0.0, safeDevice.calculateRiskScore());
-        assertEquals("Appareil conforme aux standards de sécurité.", safeDevice.getSecurityRecommendation());
+
+        // ✅ CORRECTION : Mise à jour du message attendu (nouveau format)
+        assertEquals("Appareil sain. Aucune vulnérabilité critique détectée sur les ports analysés.",
+                safeDevice.getSecurityRecommendation());
     }
 
     // --- SCÉNARIO 4. TEST DU RAPPORT IA (Le Setter) ---
@@ -75,14 +81,15 @@ class DeviceTest {
     void shouldPrioritizeManualSecurityRecommendation() {
         Device device = createDummyDevice();
 
-        // 1. Au début, c'est le message par défaut
-        assertTrue(device.getSecurityRecommendation().contains("conforme"));
+        // 1. Au début, c'est le message par défaut (Sain)
+        // ✅ CORRECTION : On cherche "sain" au lieu de "conforme"
+        assertTrue(device.getSecurityRecommendation().contains("sain"));
 
         // 2. On simule l'expert IA qui injecte son rapport
         String aiReport = "ALERTES SÉCURITÉ : Port RDP détecté par l'IA";
         device.setSecurityRecommendation(aiReport);
 
-        // 3. Le getter doit renvoyer le rapport IA, et plus le message par défaut
+        // 3. Le getter doit renvoyer le rapport IA
         assertEquals(aiReport, device.getSecurityRecommendation());
     }
 
@@ -97,6 +104,7 @@ class DeviceTest {
         );
 
         assertEquals("Ubuntu script", device.getOsVersion());
+        // La virgule est autorisée maintenant, mais le point-virgule doit partir
         assertFalse(device.getOpenPorts().contains(";"));
     }
 

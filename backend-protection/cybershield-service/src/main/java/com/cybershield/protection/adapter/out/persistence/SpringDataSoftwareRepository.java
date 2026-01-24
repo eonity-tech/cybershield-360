@@ -4,6 +4,7 @@ import com.cybershield.protection.adapter.out.persistence.software.SoftwareEntit
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -11,4 +12,5 @@ public interface SpringDataSoftwareRepository extends JpaRepository<SoftwareEnti
 
     // Pour retrouver tous les logiciels d'un PC spécifique (clé étrangère)
     List<SoftwareEntity> findByDeviceId(UUID deviceId);
+    Optional<SoftwareEntity> findByDeviceIdAndName(UUID deviceId, String name);
 }

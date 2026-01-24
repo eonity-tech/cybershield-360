@@ -11,16 +11,16 @@ import java.util.regex.Pattern;
 public class Device {
     private final UUID id;
     private final String macAddress;
-    private final String ipAddress;
+    private String ipAddress;
     private final DeviceType type;
     private final OsType osType;
     private final String osVersion;
 
-    // --- Nouveaux champs pour l'analyse réseau ---
-    private final String hostname;    // Nom réseau (ex: PC-DIRECTION)
-    private final String vendor;      // Fabricant (ex: Dell, Apple)
-    private final Integer ttl;        // Pour deviner l'OS (64=Linux, 128=Windows)
-    private final String openPorts;   // Ports détectés (ex: "80,443,22")
+    // --- champs pour l'analyse réseau (non final) ---
+    private String hostname;
+    private String vendor;
+    private Integer ttl;
+    private String openPorts;
 
     private DeviceStatus status;
     private final Instant enrolledAt;
@@ -34,7 +34,6 @@ public class Device {
                   OsType osType, String osVersion, String hostname,
                   String vendor, Integer ttl, String openPorts) {
 
-        // Validations de base -> Sécurité critique
         if (macAddress == null || !MAC_PATTERN.matcher(macAddress).matches()) {
             throw new IllegalArgumentException("Format d'adresse MAC invalide : " + macAddress);
         }
@@ -48,66 +47,104 @@ public class Device {
         this.type = type;
         this.osType = osType;
 
-        // Sanitization des chaînes libres -> Anti-Injection
         this.osVersion = sanitize(osVersion, 50);
         this.hostname = sanitize(hostname, 100);
         this.vendor = sanitize(vendor, 100);
-
-        // CORRECTION ICI : On autorise la virgule pour la liste des ports
         this.openPorts = sanitize(openPorts, 255);
 
-        // Données techniques
         this.ttl = ttl;
         this.status = DeviceStatus.UNPROTECTED;
         this.enrolledAt = Instant.now();
     }
 
-    // Méthode utilitaire de nettoyage pour la réutilisation
     private String sanitize(String input, int maxLength) {
         if (input == null || input.isBlank()) return "Unknown";
-
         String cleaned = input.replaceAll("[^a-zA-Z0-9.\\- _,/]", "");
-
         return (cleaned.length() > maxLength) ? cleaned.substring(0, maxLength) : cleaned;
     }
 
     public double calculateRiskScore() {
         double score = 0.0;
 
-        // Règle 1 : OS Critique
-        if (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008")) {
-            score += 50.0;
+        // --- 1. OS Obsolètes ---
+        if (this.osVersion != null) {
+            if (this.osVersion.contains("Windows 7") ||
+                    this.osVersion.contains("Server 2008") ||
+                    this.osVersion.contains("XP")) {
+                score += 60.0;
+            }
         }
 
-        // Règle 2 : Ports à haut risque
-        if (this.openPorts.contains("21") || this.openPorts.contains("23")) {
-            score += 30.0;
+        // --- 2. Protocoles non chiffrés ---
+        if (this.openPorts.contains("21")) score += 30.0;
+        if (this.openPorts.contains("23")) score += 40.0;
+        if (this.openPorts.contains("80") && !this.openPorts.contains("443")) {
+            score += 10.0;
         }
 
-        // Règle 3 : Appareil non identifié
+        // --- 3. Administration à distance ---
+        if (this.openPorts.contains("3389")) score += 100.0;
+        if (this.openPorts.contains("5900")) score += 70.0;
+
+        // --- 4. Fichiers partagés & Réseau ---
+        if (this.openPorts.contains("445")) score += 100.0;
+
+        // --- 5. Bases de données exposées ---
+        if (this.openPorts.contains("3306")) score += 60.0;
+        if (this.openPorts.contains("5432")) score += 60.0;
+        if (this.openPorts.contains("27017")) score += 80.0;
+        if (this.openPorts.contains("6379")) score += 80.0;
+
+        // --- 6. Appareil inconnu ---
         if (this.osType == OsType.UNKNOWN) {
-            score += 20.0;
+            score += 10.0;
         }
 
         return Math.min(score, 100.0);
     }
 
     public String getSecurityRecommendation() {
-        // 1. Si un rapport d'analyse externe a été injecté, on le retourne en priorité
+        // 1. Priorité au rapport manuel, sauf s'il est vide
         if (this.securityRecommendation != null && !this.securityRecommendation.isBlank()) {
             return this.securityRecommendation;
         }
 
-        // 2. Sinon, on garde l'ancien calcul par défaut (Fallback)
-        if (calculateRiskScore() == 0) return "Appareil conforme aux standards de sécurité.";
+        double score = calculateRiskScore();
 
-        StringBuilder advice = new StringBuilder("Actions recommandées (Auto) : ");
-        if (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008")) {
-            advice.append("- Migrer vers une version de Windows supportée. ");
+        // 2. Si score nul, tout va bien
+        if (score == 0) return "Appareil sain. Aucune vulnérabilité critique détectée sur les ports analysés.";
+
+        StringBuilder advice = new StringBuilder("Actions recommandées : ");
+
+        // --- SECTION WINDOWS / OS ---
+        if (this.osVersion != null && (this.osVersion.contains("Windows 7") || this.osVersion.contains("Server 2008"))) {
+            advice.append("(CRITIQUE) OS Obsolète. Migrer vers une version supportée. ");
         }
-        if (this.openPorts.contains("21")) advice.append("- Fermer le port FTP. ");
-        if (this.openPorts.contains("23")) advice.append("- Désactiver Telnet. ");
-        if (this.osType == OsType.UNKNOWN) advice.append("- Identifier l'appareil manuellement. ");
+
+        // --- SECTION PROTOCOLES CLAIRS ---
+        if (this.openPorts.contains("21")) advice.append("Fermer le port FTP (21). ");
+        if (this.openPorts.contains("23")) advice.append("Désactiver Telnet (23). ");
+        if (this.openPorts.contains("80") && !this.openPorts.contains("443")) {
+            advice.append("Activer HTTPS (443) et rediriger le trafic HTTP (80). ");
+        }
+
+        // --- SECTION ACCÈS DISTANT ---
+        if (this.openPorts.contains("3389")) advice.append("(URGENT) Restreindre RDP (3389) au VPN uniquement. ");
+        if (this.openPorts.contains("5900")) advice.append("Sécuriser VNC ou utiliser un tunnel SSH. ");
+        if (this.openPorts.contains("445")) advice.append("(URGENT) Bloquer SMB (445) depuis Internet (WannaCry). ");
+
+        // --- SECTION BASES DE DONNÉES ---
+        if (this.openPorts.contains("3306") || this.openPorts.contains("5432")) {
+            advice.append("(DANGER) Base de données SQL exposée (3306/5432). Restreindre l'IP source. ");
+        }
+        if (this.openPorts.contains("6379") || this.openPorts.contains("27017")) {
+            advice.append("(CRITIQUE) Base NoSQL (Redis/Mongo) exposée. Risque total de vol de données. ");
+        }
+
+        // --- Fallback ---
+        if (advice.toString().equals("Actions recommandées : ")) {
+            advice.append("Des ports ou configurations suspects ont été détectés. Vérifiez manuellement.");
+        }
 
         return advice.toString();
     }
@@ -116,10 +153,21 @@ public class Device {
         this.securityRecommendation = securityRecommendation;
     }
 
-
-    // Calcule le niveau de vulnérabilité basé sur le score de risque
     public VulnerabilityLevel getVulnerabilityLevel() {
         return VulnerabilityLevel.fromScore(this.calculateRiskScore());
+    }
+
+    // IMPLEMENTATION COMPLETE ET INTELLIGENTE
+    public void updateNetworkInfo(String ipAddress, String hostname, String vendor, Integer ttl, String openPorts) {
+        // 1. Mise à jour des données avec nettoyage
+        this.ipAddress = ipAddress;
+        this.hostname = sanitize(hostname, 100);
+        this.vendor = sanitize(vendor, 100);
+        this.ttl = ttl;
+        this.openPorts = sanitize(openPorts, 255);
+
+        // 2. Réinitialisation de la recommandation pour recalcul
+        this.securityRecommendation = null;
     }
 
     // --- Logique Métier ---
@@ -138,7 +186,6 @@ public class Device {
     public Integer getTtl() { return ttl; }
     public String getOpenPorts() { return openPorts; }
     public DeviceStatus getStatus() { return status; }
-    // Le getter indispensable pour la BDD
     public Instant getEnrolledAt() { return enrolledAt; }
 
     public enum DeviceStatus { UNPROTECTED, PROTECTED, COMPROMISED }

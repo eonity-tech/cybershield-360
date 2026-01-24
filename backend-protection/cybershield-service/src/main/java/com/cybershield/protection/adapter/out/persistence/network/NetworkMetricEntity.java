@@ -69,4 +69,10 @@ public class NetworkMetricEntity {
                 this.timestamp
         );
     }
+
+    public void updateTraffic(Double bytesSent, Double bytesReceived) {
+        this.bytesSent = bytesSent;
+        this.bytesReceived = bytesReceived;
+        this.timestamp = LocalDateTime.now();
+    }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import java.util.List; // ✅ N'oublie pas l'import !
 
 public record DeviceEnrollmentRequest(
         @NotBlank(message = "L'adresse MAC est obligatoire")
@@ -16,7 +17,7 @@ public record DeviceEnrollmentRequest(
         @NotBlank(message = "L'adresse IP est obligatoire")
         String ipAddress,
 
-        @NotNull(message = "Le type d'appareil est obligatoire (WORKSTATION, SERVER, IOT_DEVICE...)")
+        @NotNull(message = "Le type d'appareil est obligatoire")
         DeviceType type,
 
         @NotNull(message = "L'OS est obligatoire")
@@ -25,7 +26,6 @@ public record DeviceEnrollmentRequest(
         @NotBlank(message = "La version de l'OS est obligatoire")
         String osVersion,
 
-        // --- Champs optionnels pour le Scan Python (Scapy) ---
         String hostname,
 
         String vendor,
@@ -33,5 +33,5 @@ public record DeviceEnrollmentRequest(
         @Min(0) @Max(255)
         Integer ttl,
 
-        String openPorts
+        List<Integer> openPorts
 ) {}

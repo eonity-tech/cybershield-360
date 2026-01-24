@@ -16,7 +16,6 @@ import java.util.UUID;
 @Component
 public class DevicePersistenceAdapter implements DeviceRepository {
 
-    // Logger manuel
     private static final Logger log = LoggerFactory.getLogger(DevicePersistenceAdapter.class);
 
     private final SpringDataDeviceRepository springRepository;
@@ -27,16 +26,12 @@ public class DevicePersistenceAdapter implements DeviceRepository {
 
     @Override
     public Optional<Device> findById(UUID id) {
-        return springRepository.findById(id)
-                .map(this::toDomain);
+        return springRepository.findById(id).map(this::toDomain);
     }
 
     @Override
     public List<Device> findAll() {
-        return springRepository.findAll()
-                .stream()
-                .map(this::toDomain)
-                .toList();
+        return springRepository.findAll().stream().map(this::toDomain).toList();
     }
 
     @Override
@@ -54,15 +49,14 @@ public class DevicePersistenceAdapter implements DeviceRepository {
 
     @Override
     public Optional<Device> findByMacAddress(String macAddress) {
-        return springRepository.findByMacAddress(macAddress)
-                .map(this::toDomain);
+        return springRepository.findByMacAddress(macAddress).map(this::toDomain);
     }
 
     // --- MAPPERS PRIVÉS ---
+
     private DeviceEntity toEntity(Device domain) {
         DeviceEntity entity = new DeviceEntity();
 
-        // Champs simples
         entity.setId(domain.getId());
         entity.setMacAddress(domain.getMacAddress());
         entity.setIpAddress(domain.getIpAddress());
@@ -80,10 +74,16 @@ public class DevicePersistenceAdapter implements DeviceRepository {
             );
         }
 
-        // --- CONVERSION ENUMS -> STRINGS ---
+        // Mapping des enums
         if (domain.getType() != null) {
-            entity.setType(domain.getType().name());
+            // mapping pour gérer COMPUTER -> WORKSTATION
+            if (domain.getType() == DeviceType.COMPUTER) {
+                entity.setType("WORKSTATION");
+            } else {
+                entity.setType(domain.getType().name());
+            }
         }
+
         if (domain.getOsType() != null) {
             entity.setOsType(domain.getOsType().name());
         }
@@ -95,8 +95,22 @@ public class DevicePersistenceAdapter implements DeviceRepository {
     }
 
     private Device toDomain(DeviceEntity entity) {
-        // --- CONVERSION STRINGS -> ENUMS ---
-        DeviceType type = entity.getType() != null ? DeviceType.valueOf(entity.getType()) : DeviceType.UNKNOWN;
+        DeviceType type = DeviceType.UNKNOWN;
+
+        //
+        if (entity.getType() != null) {
+            // mapping pour gérer WORKSTATION -> COMPUTER
+            if ("WORKSTATION".equalsIgnoreCase(entity.getType())) {
+                type = DeviceType.COMPUTER;
+            } else {
+                try {
+                    type = DeviceType.valueOf(entity.getType());
+                } catch (IllegalArgumentException e) {
+                    type = DeviceType.UNKNOWN;
+                }
+            }
+        }
+
         OsType osType = entity.getOsType() != null ? OsType.valueOf(entity.getOsType()) : OsType.UNKNOWN;
 
         Device domain = new Device(
@@ -114,7 +128,6 @@ public class DevicePersistenceAdapter implements DeviceRepository {
 
         domain.setSecurityRecommendation(entity.getSecurityRecommendation());
 
-        // Restauration du statut
         if ("PROTECTED".equals(entity.getStatus())) {
             domain.markAsProtected();
         } else if ("COMPROMISED".equals(entity.getStatus())) {

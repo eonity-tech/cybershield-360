@@ -69,7 +69,13 @@ class NetworkMetricServiceTest {
         );
 
         Software mockSoftware = new Software(
-                UUID.randomUUID(), deviceId, "Chrome", "102.0", "Google", true
+                UUID.randomUUID(),
+                deviceId,
+                "Chrome",
+                "102.0",
+                "Browser",
+                "Google",
+                true
         );
 
         // 2. Mocking

@@ -1,12 +1,14 @@
 package com.cybershield.protection.core.usecase;
 
 import com.cybershield.protection.core.domain.NetworkMetric;
+import com.cybershield.protection.core.domain.type.VulnerabilityLevel; // N'oublie pas cet import !
 import com.cybershield.protection.core.model.GlobalDeviceDashboardSummary;
 import com.cybershield.protection.core.port.in.RecordNetworkTrafficUseCase;
 import com.cybershield.protection.core.port.out.DeviceRepository;
-import com.cybershield.protection.core.port.out.NetworkRepository; // À créer
+import com.cybershield.protection.core.port.out.NetworkRepository;
 import com.cybershield.protection.core.port.out.SoftwareRepository;
 import org.springframework.stereotype.Service;
+
 import java.util.UUID;
 import java.util.List;
 
@@ -14,8 +16,8 @@ import java.util.List;
 public class NetworkMetricService implements RecordNetworkTrafficUseCase {
 
     private final NetworkRepository networkRepository;
-    private final DeviceRepository deviceRepository;     // Pour l'IP (Phase 1)
-    private final SoftwareRepository softwareRepository; // Pour les logiciels (Phase 2)
+    private final DeviceRepository deviceRepository;
+    private final SoftwareRepository softwareRepository;
 
     public NetworkMetricService(NetworkRepository networkRepository,
                                 DeviceRepository deviceRepository,
@@ -27,46 +29,55 @@ public class NetworkMetricService implements RecordNetworkTrafficUseCase {
 
     @Override
     public void record(UUID deviceId, double bytesSent, double bytesReceived) {
-        // --- GARDE DE SÉCURITÉ ---
         if (deviceId == null) {
-            throw new IllegalArgumentException("L'identifiant de l'appareil est obligatoire pour enregistrer du trafic.");
+            throw new IllegalArgumentException("L'identifiant de l'appareil est obligatoire.");
         }
-
-        // Création de l'objet métier (Metric)
-        NetworkMetric metric = new NetworkMetric(
-                UUID.randomUUID(),
-                deviceId,
-                bytesSent,
-                bytesReceived
-        );
-
-        // Sauvegarde via le port de sortie (Interface vers la BDD)
+        NetworkMetric metric = new NetworkMetric(UUID.randomUUID(), deviceId, bytesSent, bytesReceived);
         networkRepository.save(metric);
     }
 
-    // --- LA VUE RÉCAPITULATIVE POUR L'UTILISATEUR ---
+    // Méthode pour obtenir le tableau de bord global
     public List<GlobalDeviceDashboardSummary> getGlobalDashboard() {
         return deviceRepository.findAll().stream().map(device -> {
 
-            // 1. Récupérer le dernier flux connu pour ce PC (Phase 3)
+            // 1. Récupérer le trafic
             NetworkMetric lastMetric = networkRepository.findLatestByDeviceId(device.getId());
             double usage = (lastMetric != null) ? (lastMetric.getBytesSent() + lastMetric.getBytesReceived()) : 0;
 
-            // 2. Calculer le StatusCode (1: Crit, 2: Warn, 3: Safe)
-            int code = (usage > 500_000_000) ? 1 : (usage > 50_000_000) ? 2 : 3;
-            String msg = switch(code) {
-                case 1 -> "ALERTE : Volume anormal détecté (> 500Mo).";
-                case 2 -> "ATTENTION : Utilisation importante de la bande passante.";
-                default -> "Trafic réseau nominal.";
-            };
-
-            // 3. Récupérer les logiciels trouvés sur ce PC (Phase 2) [cite: 41, 50]
+            // 2. Récupérer les logiciels
             List<String> softwareNames = softwareRepository.findByDeviceId(device.getId())
                     .stream()
                     .map(s -> s.getName() + " (v" + s.getVersion() + ")")
                     .toList();
 
-            // 4. Assemblage pour le Dashboard
+            // 3. LOGIQUE DE DÉCISION
+            int code;
+            String msg;
+
+            // PRIORITÉ 1 : SÉCURITÉ DES APPAREILS
+            if (device.getVulnerabilityLevel() == VulnerabilityLevel.CRITICAL) {
+                code = 1; // ROUGE
+                msg = device.getSecurityRecommendation();
+            }
+            else if (device.getVulnerabilityLevel() == VulnerabilityLevel.HIGH) {
+                code = 2; // ORANGE
+                msg = device.getSecurityRecommendation();
+            }
+            // PRIORITÉ 2 : TRAFIC RÉSEAU
+            else if (usage > 500_000_000) {
+                code = 1;
+                msg = "ALERTE : Volume anormal détecté (> 500Mo).";
+            }
+            else if (usage > 50_000_000) {
+                code = 2;
+                msg = "ATTENTION : Utilisation importante de la bande passante.";
+            }
+            else {
+                code = 3;
+                msg = "Trafic réseau nominal. Système sain.";
+            }
+
+            // 4. Assemblage
             return new GlobalDeviceDashboardSummary(
                     device.getId(),
                     device.getIpAddress(),

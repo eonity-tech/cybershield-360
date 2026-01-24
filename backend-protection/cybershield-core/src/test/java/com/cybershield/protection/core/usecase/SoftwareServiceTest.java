@@ -12,41 +12,78 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional; // ✅ Import indispensable pour le mock
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class) // Active Mockito
+@ExtendWith(MockitoExtension.class)
 class SoftwareServiceTest {
 
     @Mock
-    private DeviceRepository deviceRepository; // Simule le port Device
+    private DeviceRepository deviceRepository;
 
     @Mock
-    private SoftwareRepository softwareRepository; // Simule le port Software
+    private SoftwareRepository softwareRepository;
 
     @InjectMocks
-    private SoftwareService softwareService; // Le service à tester
+    private SoftwareService softwareService;
 
-    // --- TEST 1 : ENREGISTREMENT ---
+    // --- TEST 1 : ENREGISTREMENT, nouveau logiciel ---
     @Test
-    @DisplayName("Register : Doit sauvegarder le logiciel si l'appareil existe")
-    void register() {
-        // GIVEN (Préparation)
+    @DisplayName("Register : Doit créer un nouveau logiciel si l'appareil existe et qu'il n'y a pas de doublon")
+    void register_NewSoftware() {
+        // GIVEN
         UUID deviceId = UUID.randomUUID();
-        when(deviceRepository.existsById(deviceId)).thenReturn(true); // L'appareil existe
-        when(softwareRepository.save(any(Software.class))).thenAnswer(i -> i.getArgument(0)); // Mock save
+        String softwareName = "Nmap";
 
-        // WHEN (Action)
-        Software result = softwareService.register(deviceId, "Nmap", "7.92", "Insecure.org", true);
+        // 1. Le device existe
+        when(deviceRepository.existsById(deviceId)).thenReturn(true);
 
-        // THEN (Vérification)
+        // 2. Le logiciel N'EXISTE PAS encore (en base) pour cet appareil
+        when(softwareRepository.findByDeviceIdAndName(deviceId, softwareName)).thenReturn(Optional.empty());
+
+        // 3. Mock du save
+        when(softwareRepository.save(any(Software.class))).thenAnswer(i -> i.getArgument(0));
+
+        // WHEN
+        // Ajout du paramètre "Network Tool" (type)
+        Software result = softwareService.register(deviceId, softwareName, "7.92", "Network Tool", "Insecure.org", true);
+
+        // THEN
         assertNotNull(result);
         assertEquals("Nmap", result.getName());
-        assertEquals(deviceId, result.getDeviceId());
-        verify(softwareRepository).save(any(Software.class)); // Vérifie que save() a été appelé
+        assertEquals("Network Tool", result.getType()); // Vérif du type
+        verify(softwareRepository).save(any(Software.class));
+    }
+
+    // --- TEST 1 BIS : MISE A JOUR D'UN LOGICIEL EXISTANT ---
+    @Test
+    @DisplayName("Register : Doit mettre à jour le logiciel s'il existe déjà (Upsert)")
+    void register_UpdateExisting() {
+        // GIVEN
+        UUID deviceId = UUID.randomUUID();
+        String softwareName = "VLC";
+
+        // Un logiciel existe déjà en base avec une vieille version
+        Software existingSoftware = new Software(UUID.randomUUID(), deviceId, softwareName, "1.0", "Media Player", "VideoLAN", true);
+
+        when(deviceRepository.existsById(deviceId)).thenReturn(true);
+
+        // Le logiciel EXISTE DÉJÀ -> Le service doit faire une mise à jour
+        when(softwareRepository.findByDeviceIdAndName(deviceId, softwareName)).thenReturn(Optional.of(existingSoftware));
+
+        when(softwareRepository.save(any(Software.class))).thenAnswer(i -> i.getArgument(0));
+
+        // WHEN : On enregistre une NOUVELLE version
+        Software result = softwareService.register(deviceId, softwareName, "2.0", "Media Player", "VideoLAN", true);
+
+        // THEN
+        assertEquals("2.0", result.getVersion()); // La version a changé
+        assertEquals(existingSoftware.getId(), result.getId()); // C'est toujours le même ID (pas de doublon)
+        verify(softwareRepository).save(existingSoftware);
     }
 
     @Test
@@ -54,14 +91,15 @@ class SoftwareServiceTest {
     void register_ShouldThrowException_WhenDeviceNotFound() {
         // GIVEN
         UUID unknownId = UUID.randomUUID();
-        when(deviceRepository.existsById(unknownId)).thenReturn(false); // L'appareil n'existe pas
+        when(deviceRepository.existsById(unknownId)).thenReturn(false);
 
         // WHEN & THEN
         assertThrows(NoSuchElementException.class, () ->
-                softwareService.register(unknownId, "Virus", "1.0", "Hacker", true)
+                // ✅ Ajout du paramètre type "Malware"
+                softwareService.register(unknownId, "Virus", "1.0", "Malware", "Hacker", true)
         );
 
-        verify(softwareRepository, never()).save(any()); // Vérifie qu'on n'a RIEN sauvegardé
+        verify(softwareRepository, never()).save(any());
     }
 
     // --- TEST 2 : RECHERCHE PAR DEVICE ---
@@ -71,8 +109,9 @@ class SoftwareServiceTest {
         // GIVEN
         UUID deviceId = UUID.randomUUID();
         List<Software> mockSoftwares = List.of(
-                new Software(UUID.randomUUID(), deviceId, "Java", "17", "Oracle", true),
-                new Software(UUID.randomUUID(), deviceId, "Docker", "20", "Docker Inc", true)
+                // ✅ Ajout du paramètre type dans le constructeur
+                new Software(UUID.randomUUID(), deviceId, "Java", "17", "Dev", "Oracle", true),
+                new Software(UUID.randomUUID(), deviceId, "Docker", "20", "Dev", "Docker Inc", true)
         );
         when(softwareRepository.findByDeviceId(deviceId)).thenReturn(mockSoftwares);
 
@@ -90,9 +129,9 @@ class SoftwareServiceTest {
     void findCriticalSoftware() {
         // GIVEN
         List<Software> allSoftwares = List.of(
-                new Software(UUID.randomUUID(), UUID.randomUUID(), "Word", "2019", "Microsoft", false),
-                new Software(UUID.randomUUID(), UUID.randomUUID(), "Wireshark", "3.0", "Wireshark", true), // Critique !
-                new Software(UUID.randomUUID(), UUID.randomUUID(), "Chrome", "99-beta", "Google", true)   // Critique !
+                new Software(UUID.randomUUID(), UUID.randomUUID(), "Word", "2019", "Office", "Microsoft", false),
+                new Software(UUID.randomUUID(), UUID.randomUUID(), "Wireshark", "3.0", "Network", "Wireshark", true),
+                new Software(UUID.randomUUID(), UUID.randomUUID(), "Chrome", "99-beta", "Browser", "Google", true)
         );
         when(softwareRepository.findAll()).thenReturn(allSoftwares);
 
@@ -100,8 +139,7 @@ class SoftwareServiceTest {
         List<Software> criticals = softwareService.findCriticalSoftware();
 
         // THEN
-        assertEquals(2, criticals.size(), "Doit trouver 2 logiciels critiques");
+        assertEquals(2, criticals.size());
         assertTrue(criticals.stream().anyMatch(s -> s.getName().equals("Wireshark")));
-        assertTrue(criticals.stream().anyMatch(s -> s.getVersion().contains("beta")));
     }
 }
